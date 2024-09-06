@@ -1,4 +1,5 @@
-% README: like MumbyHPDE but changed the grazing term
+% README: function for running the PDE version of the Mumby model with a
+% type II grazing term and dynamic herbivores (like van de Leemput et al. 2016) 
 
 
 function[sol] = altPDE(r,a,gamma,gz, rH, dH, f,h, d,alpha, beta, diff,taxisM,taxisC, taxisT, diric, ...

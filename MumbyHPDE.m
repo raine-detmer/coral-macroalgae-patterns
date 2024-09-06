@@ -1,4 +1,5 @@
-% README: like MumbyOPDE but adding fish back in, and changed fish eqn
+% README: function for running the PDE version of the Mumby et al. 2007
+% model (with dynamic fish and external recruitment)
 
 
 %function[sol] = MumbyHPDE(r,a,gamma,gz, rH, dH, f,d,alpha, beta, diff,taxisM,taxisC, diric,x,t,initC,Clow, Chigh, Mlow, Mhigh, icchoice)

@@ -1,12 +1,14 @@
 
-% README: function for calculating the upper and lower tipping points  
+% README: function for calculating the upper and lower tipping points (boundaries 
+% of the region of bistability) for the nonspatial version of the Briggs
+% pde model
 
 % finit = intial set of fishing pressures to test
 
-% UPDATE THIS: make the input two fsets, one for finding lower boundary and
-% one for finding upper boundary (did initial check in Mathematica)
+% input two finit sets, one for finding lower boundary and
+% one for finding upper boundary 
 
-%function [lowtp, uptp] = tpfun(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, finitL, finitU)
+% parset = model parameters (for the ODE/nonspatial version of the model)
 
 function [lowtp, uptp] = tpfun(parset, finitL, finitU)
 phiC = parset(1);

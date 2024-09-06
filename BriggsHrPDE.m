@@ -1,7 +1,5 @@
-% README: turning the Briggs model into a PDE (and adding dynamic fish to it)
+% README: function for simulating the PDE version of the Briggs model (with dynamic herbivores)
 
-% tried to add option for sin initial conditions but it seems to require a
-% different method for initial condition specification
 
 function[sol] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, ...
     dH, f, diff,taxisM,taxisC, taxisT, diric,x,t,initC,Clow, Chigh, Mlow, Mhigh, rnsize, ...
