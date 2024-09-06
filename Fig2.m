@@ -657,7 +657,7 @@ xlim([min(diffHset3) 1.2])
 %ylabel('Taxis towards coral (m^2 C^{-1} yr^{-1})','FontSize',19)
 xlabel('Herbivore diffusion rate','FontSize',19)
 ylabel('Taxis towards coral','FontSize',19)
-text(0.2, 1.45, 'a)', 'Color', [0 0 0],'FontSize', 16)
+text(0.07, 1.15, 'a)', 'Color', [0 0 0],'FontSize', 17)
 hold on
 fill(btwx, btwy2, C1, 'FaceAlpha',0.1, 'EdgeColor', C1);
 text(0.6, 0.2, 'No patterns', 'Color', [0 0 0],'FontSize', 18)

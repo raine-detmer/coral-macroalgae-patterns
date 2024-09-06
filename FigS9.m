@@ -200,8 +200,10 @@ save('code output/FigS9.mat','Clowtp', 'Cuptp', 'Mlowtp', 'Muptp')
 
 %% plot results
 
-ymn = -2.5;
-ymx = 2.5;
+%ymn = -2.5;
+%ymx = 2.5;
+ymn = -1.2;
+ymx = 1.2;
 
 
 Mcol = [0.4667 0.6745 0.1882];
@@ -237,7 +239,7 @@ ylabel(t,'Percent change in balloon height relative to default','FontSize',22)
 xlabel(t,'Percent change in parameter relative to default', 'FontSize',22)
 xl = get(gca(),'Xlim');
 yl = get(gca(),'Ylim');
-text(xl(1),yl(2),'a) \phi_C', 'VerticalAlignment','top','FontSize',titlesz);%,'HorizontalAlignment','left'
+text(xl(1),yl(2),'a) \phi_C', 'HorizontalAlignment','right','VerticalAlignment','top','FontSize',titlesz);%,'HorizontalAlignment','left'
 
 nexttile
 tpset = Mlowtp(:,:,2); 
@@ -247,7 +249,8 @@ ax = gca;
 ax.XAxis.FontSize = 16; 
 yline(0,'LineWidth',1.5)
 ylim([ymn ymx])
-text(xl(1),yl(2),'b) g_T_C', 'VerticalAlignment','top','FontSize',titlesz);
+%text(xl(1),yl(2),'b) g_T_C', 'HorizontalAlignment','right','VerticalAlignment','top','FontSize',titlesz);
+text(0.25,yl(2),'b) g_T_C','VerticalAlignment','top','FontSize',titlesz);
 
 nexttile
 tpset = Mlowtp(:,:,3); 
@@ -257,7 +260,7 @@ ax = gca;
 ax.XAxis.FontSize = 16; 
 yline(0,'LineWidth',1.5)
 ylim([ymn ymx])
-text(xl(1),yl(2),'c) \gamma', 'VerticalAlignment','top','FontSize',titlesz);
+text(xl(1),yl(2),'c) \gamma', 'HorizontalAlignment','right','VerticalAlignment','top','FontSize',titlesz);
 
 nexttile
 tpset = Mlowtp(:,:,4); 
@@ -267,7 +270,7 @@ ax = gca;
 ax.XAxis.FontSize = 16; 
 yline(0,'LineWidth',1.5)
 ylim([ymn ymx])
-text(xl(1),yl(2),'d) g_T_I', 'VerticalAlignment','top','FontSize',titlesz);
+text(xl(1),yl(2),'d) g_T_I', 'HorizontalAlignment','right','VerticalAlignment','top','FontSize',titlesz);
 
 nexttile
 tpset = Mlowtp(:,:,5); 
@@ -277,7 +280,7 @@ ax = gca;
 ax.XAxis.FontSize = 16; 
 yline(0,'LineWidth',1.5)
 ylim([ymn ymx])
-text(xl(1),yl(2),'e) d_C', 'VerticalAlignment','top','FontSize',titlesz);
+text(xl(1),yl(2),'e) d_C', 'HorizontalAlignment','right','VerticalAlignment','top','FontSize',titlesz);
 
 nexttile
 tpset = Mlowtp(:,:,6); 
@@ -287,7 +290,7 @@ ax = gca;
 ax.XAxis.FontSize = 16; 
 yline(0,'LineWidth',1.5)
 ylim([ymn ymx])
-text(xl(1),yl(2),'f) \phi_M', 'VerticalAlignment','top','FontSize',titlesz);
+text(xl(1),yl(2),'f) \phi_M', 'HorizontalAlignment','right','VerticalAlignment','top','FontSize',titlesz);
 
 nexttile
 tpset = Mlowtp(:,:,7); 
@@ -297,7 +300,7 @@ ax = gca;
 ax.XAxis.FontSize = 16; 
 yline(0,'LineWidth',1.5)
 ylim([ymn ymx])
-text(xl(1),yl(2),'g) r_M', 'VerticalAlignment','top','FontSize',titlesz);
+text(xl(1),yl(2),'g) r_M', 'HorizontalAlignment','right','VerticalAlignment','top','FontSize',titlesz);
 
 nexttile
 tpset = Mlowtp(:,:,8); 
@@ -307,7 +310,9 @@ ax = gca;
 ax.XAxis.FontSize = 16; 
 yline(0,'LineWidth',1.5)
 ylim([ymn ymx])
-text(xl(1),yl(2),'h) g_T_V', 'VerticalAlignment','top','FontSize',titlesz);
+%text(xl(1),yl(2),'h) g_T_V', 'HorizontalAlignment','right','VerticalAlignment','top','FontSize',titlesz);
+text(0.25,yl(2),'h) g_T_V', 'VerticalAlignment','top','FontSize',titlesz);
+
 
 nexttile
 tpset = Mlowtp(:,:,9); 
@@ -317,7 +322,7 @@ ax = gca;
 ax.XAxis.FontSize = 16; 
 yline(0,'LineWidth',1.5)
 ylim([ymn ymx])
-text(xl(1),yl(2),'i) d_V', 'VerticalAlignment','top','FontSize',titlesz);
+text(xl(1),yl(2),'i) d_V', 'HorizontalAlignment','right','VerticalAlignment','top','FontSize',titlesz);
 
 nexttile
 tpset = Mlowtp(:,:,10); 
@@ -327,7 +332,7 @@ ax = gca;
 ax.XAxis.FontSize = 16; 
 yline(0,'LineWidth',1.5)
 ylim([ymn ymx])
-text(xl(1),yl(2),'j) \omega', 'VerticalAlignment','top','FontSize',titlesz);
+text(xl(1),yl(2),'j) \omega', 'HorizontalAlignment','right','VerticalAlignment','top','FontSize',titlesz);
 
 nexttile
 tpset = Mlowtp(:,:,11); 
@@ -337,7 +342,7 @@ ax = gca;
 ax.XAxis.FontSize = 16; 
 yline(0,'LineWidth',1.5)
 ylim([ymn ymx])
-text(xl(1),yl(2),'k) d_I', 'VerticalAlignment','top','FontSize',titlesz);
+text(xl(1),yl(2),'k) d_I', 'HorizontalAlignment','right','VerticalAlignment','top','FontSize',titlesz);
 
 nexttile
 tpset = Mlowtp(:,:,12); 
@@ -347,7 +352,7 @@ ax = gca;
 ax.XAxis.FontSize = 16; 
 yline(0,'LineWidth',1.5)
 ylim([ymn ymx])
-text(xl(1),yl(2),'l) r_H', 'VerticalAlignment','top','FontSize',titlesz);
+text(xl(1),yl(2),'l) r_H','HorizontalAlignment','right', 'VerticalAlignment','top','FontSize',titlesz);
 
 nexttile
 tpset = Mlowtp(:,:,13); 
@@ -357,7 +362,7 @@ ax = gca;
 ax.XAxis.FontSize = 16; 
 yline(0,'LineWidth',1.5)
 ylim([ymn ymx])
-text(xl(1),yl(2),'m) d_H', 'VerticalAlignment','top','FontSize',titlesz);
+text(xl(1),yl(2),'m) d_H', 'HorizontalAlignment','right','VerticalAlignment','top','FontSize',titlesz);
 
 
 %phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH
