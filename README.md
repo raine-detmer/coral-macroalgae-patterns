@@ -1,5 +1,5 @@
 # coral-macroalgae-patterns
-Code for making the figures in "A Busse balloon in the lagoon: herbivore behavior generates spatial patterns in coral reef ecosystems"
+Code for making the figures in "A Busse balloon in the lagoon: herbivore behavior generates spatial patterns in coral reef ecosystems" by A. Raine Detmer, Scott D. Miller, Alexandra K. Dubel, Kacie Ring, Christian John, Cheryl J. Briggs, Andrew Rassweiler, and Holly V. Moeller
 
 Model analyses:
 The .m scripts labeled "FigX" are named for the figures they create and contain all code for simulating and plotting the results shown in those figures. For example, running the “Fig2.m” script will make Figure 2. The remaining .m scripts contain the functions used for simulating the models and processing model output. The "code output" folder contains the stored outputs of simulations used to make the figures (each labeled for the figure to which it corresponds). All model simulations were performed in Matlab R2023b. 
