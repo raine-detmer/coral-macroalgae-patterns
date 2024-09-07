@@ -8,7 +8,7 @@ Herbivore data analyses:
 The "Herbivore code" folder contains the code used for analyzing the Moorea Coral Reef LTER fish survey data (Moorea Coral Reef LTER and A. Brooks 2023). These analyses were used to calculate the relative abundances of the herbivore species included in Table 2 in Moorea. They were performed in R version 4.3.1 (R Core Team 2023). 
 
 DOI Badge for this repository:
-[![DOI](https://zenodo.org/badge/843644567.svg)](https://zenodo.org/doi/10.5281/zenodo.13730757)]
+[![DOI](https://zenodo.org/badge/843644567.svg)](https://zenodo.org/doi/10.5281/zenodo.13730757)
 
 References
 
