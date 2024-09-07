@@ -7,6 +7,9 @@ The .m scripts labeled "FigX" are named for the figures they create and contain 
 Herbivore data analyses:
 The "Herbivore code" folder contains the code used for analyzing the Moorea Coral Reef LTER fish survey data (Moorea Coral Reef LTER and A. Brooks 2023). These analyses were used to calculate the relative abundances of the herbivore species included in Table 2 in Moorea. They were performed in R version 4.3.1 (R Core Team 2023). 
 
+DOI Badge for this repository:
+[![DOI](https://zenodo.org/badge/843644567.svg)](https://zenodo.org/doi/10.5281/zenodo.13730757)]
+
 References
 
 Moorea Coral Reef LTER and A. Brooks. 2023. MCR LTER: Coral Reef: Long-term Population and Community Dynamics: Fishes, ongoing since 2005 ver 62. Environmental Data Initiative. https://doi.org/10.6073/pasta/75644add7e7f90c568bf5045264d359a (Accessed 2024-09-06).
@@ -14,3 +17,4 @@ Moorea Coral Reef LTER and A. Brooks. 2023. MCR LTER: Coral Reef: Long-term Popu
 R Core Team (2023). R: A Language and Environment for Statistical
   Computing_. R Foundation for Statistical Computing, Vienna, Austria.
   <https://www.R-project.org/>.
+
