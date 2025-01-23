@@ -4,8 +4,8 @@
 Mcol = [0.4667 0.6745 0.1882];
 Ccol = [0.3020 0.7451 0.9333];
 
-flow = 0.1111; % lower tipping point (calculated in Fig3.m)
-fup = 0.1229; % upper tipping point
+flow = 0.1674; % lower tipping point (calculated in Fig2.m)
+fup = 0.1878; % upper tipping point
 pgon = polyshape([flow flow fup fup],[2 -1 -1 2]);
 
 
@@ -40,6 +40,7 @@ phiM = 0.01;
 % herbivore parameters
 rH = 0.2;
 dH = 0.1; 
+phiH = 0.05;
 
 %% ODE equilibria
 
@@ -48,7 +49,7 @@ syms Mi C H Mv
 
 
 % set of fishing values
-fset = linspace(0.05, 0.15, 100);
+fset = linspace(0.12, 0.2, 100);
 
 % holding vector of eq values
 Cstars = NaN(length(fset), 4);%not sure how many pos, real eq...maybe run a single 
@@ -67,7 +68,7 @@ for i = 1:length(fset)%for each element of gset
 
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
-    eq3i = rH*H-dH*H*H-fi*H ==0; %H
+    eq3i = phiH + rH*H-dH*H*H-fi*H ==0; %H
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real
@@ -85,9 +86,13 @@ bstart = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 % use vertcat to concatenate vertical vectors
 % look at the Cstars to figure out how to piece these together
 % for f on x axis:
-Cups = vertcat(Cstars(1:bstart-1, 2), Cstars(bstart:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
-Cmids = Cstars(:, 3);
-Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 2));
+% Cups = vertcat(Cstars(1:bstart-1, 2), Cstars(bstart:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+% Cmids = Cstars(:, 3);
+% Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 2));
+Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:bend, 3), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cmids = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:bend, 2), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 1));
+
 
 Mups = vertcat(Mstars(1:bend, 1), Mstars(bend+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
 Mmids = vertcat(Mstars(1:bstart-1, 3), Mstars(bstart:bend, 2), Mstars(bend+1:end, 3));
@@ -111,9 +116,9 @@ Mlows = vertcat(Mstars(1:bend, 3), Mstars(bend+1:end, 1));
 %% PDE set up
 
 % PDE parameters
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
-taxisC = -0.5;%0; % taxis rate toward coral
+taxisC = -0.75;%0; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -168,7 +173,7 @@ initCset(4, 1:760) = xset(1:760); % 760 = 95% of xset
 initCset(5, :) = xset; % all high coral
 
 %  values of fishing pressure
-fset21 = linspace(0.07, 0.13, 20); % for higher bistability region
+fset21 = linspace(0.13, 0.19, 20); % for higher bistability region
 
 
 %% check initial conditions
@@ -202,7 +207,7 @@ fset21 = linspace(0.07, 0.13, 20); % for higher bistability region
 %fset21 = [0.07];
 
 %txset = [-1 -0.5 0 0.5 1];
-txset = [-0.5 0 0.5];
+txset = [-0.75 0 0.75];
 
 %parset = [0 0.25 0.5 0.75 1]; % parameter set (% coral dominance)
 parset = [0 0.05 0.5 0.95 1]; % parameter set (% coral dominance)
@@ -244,7 +249,7 @@ for k = 1:length(parset) % for each step width
 
         ftest = fset21(i);
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     Cruns(1, :,i, k, j) = solij(end,:,2);
     Mruns(1, :, i, k, j) = solij(end,:,1)+ solij(end,:,4);
@@ -275,7 +280,7 @@ for k = 1:length(parset) % for each step width
 
 end 
 
-toc % most current: took 518 seconds (8.6 min)
+toc % most current: took 805 seconds (13 min)
 
 
 % save results
@@ -288,6 +293,30 @@ Hruns1 = Hruns;
  Cmeans1 = Cmeans;
  Mmeans1 = Mmeans;
  Hmeans1 = Hmeans;
+
+
+% update the 50% coral, no taxis case for fset21(15) (took much longer to equilibrate)
+
+t_end = 14*50000;
+tset = linspace(0,t_end,2*2500); 
+
+k = 3;  
+initC = initCset(k, find(isnan(initCset(k,:))==0));
+
+j = 2;
+taxisC = txset(j);
+
+ i = 15; 
+
+        ftest = fset21(i);
+     % run PDE
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ...
+        ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, ...
+        C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
+
+    Cmeans1(i, k, j) = mean(solij(end, b1i:b2i, 2));
+    Mmeans1(i, k, j) = mean(solij(end, b1i:b2i, 1)+ solij(end,b1i:b2i,4));
+    Hmeans1(i, k, j) = mean(solij(end, b1i:b2i, 3));
 
  %% save results
  %save('code output/FigS2S3.mat','Cruns1', 'Mruns1', 'Hruns1', 'Cmeans1', ...
@@ -316,27 +345,30 @@ hold on
 plot(xset,Hruns1(1, :, pf, k, ptx), 'LineWidth',2, 'Color', [0.9294 0.6941 0.1255])
 hold off
 
-%% check when patterns start
+%% check pattern equilibration
 
 %t_end = 3*50000;
 %tset = linspace(0,t_end,2*2500); 
 
-t_end = 10000;
+% t_end = 10000;
+% tset = linspace(0,t_end,2*2500); 
+
+t_end = 4*50000;
 tset = linspace(0,t_end,2*2500); 
 
-k = 1;  
+k = 3;  
 initC = initCset(k, find(isnan(initCset(k,:))==0));
 
-j = 1;
+j = 3;
 taxisC = txset(j);
 
- i = 14; 
+ i = 15; 
 
         ftest = fset21(i);
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ...
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ...
         ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, ...
-        C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+        C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     Ctest = solij(:,:,2);
     Mtest = solij(:,:,1)+ solij(:,:,4);
@@ -385,12 +417,12 @@ figure(1)
 k = 1;
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 ylim([0 0.7])
-xlim([0.065 0.135])
+xlim([0.12 0.2])
 title('a) 0% coral dominance', 'FontSize',16)
 ax = gca;
 ax.TitleHorizontalAlignment = 'left';
 hold on
-text(0.112, 0.6, 'Bistable', 'Color', 'black','FontSize', 16)
+text(0.172, 0.6, 'Bistable', 'Color', 'black','FontSize', 16)
 plot(fset, Mups,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5)
 plot(fset, Mmids,'Color', Mcol, "LineStyle","--", 'LineWidth', 2.5) % unstable
 plot(fset, Mlows,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5)
@@ -431,7 +463,7 @@ figure(2)
 k = 2; 
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 ylim([0 0.7])
-xlim([0.065 0.135])
+xlim([0.12 0.2])
 title('b) 5% coral dominance', 'FontSize',16)
 %title('c) 50% coral dominance', 'FontSize',16)
 %title('d) 95% coral dominance', 'FontSize',16)
@@ -461,7 +493,7 @@ figure(3)
 k = 3; 
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 ylim([0 0.7])
-xlim([0.065 0.135])
+xlim([0.12 0.2])
 %title('b) 5% coral dominance', 'FontSize',16)
 title('c) 50% coral dominance', 'FontSize',16)
 %title('d) 95% coral dominance', 'FontSize',16)
@@ -490,7 +522,7 @@ figure(4)
 k = 4; 
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 ylim([0 0.7])
-xlim([0.065 0.135])
+xlim([0.12 0.2])
 %title('b) 5% coral dominance', 'FontSize',16)
 %title('c) 50% coral dominance', 'FontSize',16)
 title('d) 95% coral dominance', 'FontSize',16)
@@ -519,7 +551,7 @@ figure(5)
 k = 5; 
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 ylim([0 0.7])
-xlim([0.065 0.135])
+xlim([0.12 0.2])
 %title('b) 5% coral dominance', 'FontSize',16)
 %title('c) 50% coral dominance', 'FontSize',16)
 %title('d) 95% coral dominance', 'FontSize',16)
@@ -555,7 +587,7 @@ M0low = 0.05;
 C0widths = round(length(xset)/64);  % step widths
 initC = stepfun(C0widths, xset); 
 
-txset = [-0.5 0 0.5];
+txset = [-0.75 0 0.75];
 
 % time
 t_end = 2000;
@@ -574,9 +606,9 @@ tic
      taxisC = txset(j);
 
         %ftest = fset21(11); % just about at the tipping point
-        ftest = fset21(13); % just before tipping point 
+        ftest = fset21(13); % 0.1679, just before tipping point 
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     Cruns(:, :, j) = solij(:,:,2);
     Mruns(:, :, j) = solij(:,:,1)+ solij(:,:,4);
@@ -584,7 +616,7 @@ tic
    
  end
 
-toc % most current: took 1560 seconds (26 min)
+toc 
 
 
 % save results
@@ -596,7 +628,8 @@ HrunsT = Hruns;
 
 %tpset = [1, 2, 4, 8]; % timepoints to plot; year 0   30.0060   90.0180  210.0420
 
-tpset = [10, 30, 80, 180]; 
+%tpset = [10, 30, 80, 180]; 
+tpset = [10, 30, 90, 190]; 
 
 figure(2)
 x0=10;
@@ -653,7 +686,7 @@ ylim([-0.01 1.75])
 % ax.TitleHorizontalAlignment = 'left';
 hold on
 plot(xset(b1i:b2i),MrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
-text(-90, 1.5, 'Year 80', 'FontSize',16)
+text(-90, 1.5, 'Year 90', 'FontSize',16)
 hold off
 hold on
 plot(xset(b1i:b2i),HrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.9294 0.6941 0.1255])
@@ -668,7 +701,7 @@ ylim([-0.01 1.75])
 % ax.TitleHorizontalAlignment = 'left';
 hold on
 plot(xset(b1i:b2i),MrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
-text(-90, 1.5, 'Year 180', 'FontSize',16)
+text(-90, 1.5, 'Year 190', 'FontSize',16)
 hold off
 hold on
 plot(xset(b1i:b2i),HrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.9294 0.6941 0.1255])
