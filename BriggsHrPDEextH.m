@@ -5,13 +5,6 @@ function[sol] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, om
     dH, f, diff,taxisM,taxisC, taxisT, diric,x,t,initC,Clow, Chigh, Mlow, Mhigh, rnsize, ...
     ampC0, ampM0, period0,icchoice, phiH)
 
-% initial conditions for sin wave case
-%if icchoice ==5
-%global Mi00; global C00; global H00; global Mv00;
-%Mi00 = (ampM0*sin(period0*x-pi) + Mhigh)*0.95;
-%C00 = ampC0*sin(period0*x) + Chigh;
-%Mv00 = (ampM0*sin(period0*x-pi) + Mhigh)*0.05;
-%end
 
 % Find solution by simulating with PDE solver
 sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
@@ -35,7 +28,8 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
     end
 %Initial conditions
     function [y0] = pdeic(xi)
-        k = (rH-f)/dH; % initial herbivore abundance at each location
+        %k = (rH-f)/dH; % initial herbivore abundance at each location
+        k = ((rH-f) + sqrt((rH-f)^2 + 4*dH*phiH))/(2*dH); % initial herbivore abundance at each location
         
         % low coral
         if icchoice == 1
@@ -49,22 +43,8 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
         
         %RANDOMIZED
         if icchoice == 3
-        %Mi = .5*rand;
-        %y0 = [Mi,.8-Mi,k*(1+(2*rand-1))]'; %randomize macroalgae and fish
-        %y0 = [Mi,0.8-Mi,k, 0]'; %randomize macroalgae only
-        % * rand generates random number between 0 and 1, multiple this by
-        % 0.5 so max initial M is 0.5, say 0.2 of habitat is initially
-        % turf, so initial C is 0.8-M. Initialize fish at carrying capacity
-        % everywhere
-
-        % update: let M initially be higher
-       % Mi = .9*rand; % initial invul macroalgal cover
-       % Cprop = rand; % proportion of remaining cover that is coral
-        % then say remaining cover that isn't Mi or C is 50% vuln M and 50%
-        % turf
-       % y0 = [Mi,(1-Mi)*Cprop,k, (1-Mi-(1-Mi)*Cprop)*0.5]'; % Minv, C, H, Mvuln
-
-        % update: make initial values and magnitude of randomness function
+        
+        % make initial values and magnitude of randomness function
         % arguments
         Mi0 = Mhigh-Mhigh*rand*rnsize; % initial invul macroalgal cover
         C0 = Chigh-Chigh*rand*rnsize; % initial coral cover
