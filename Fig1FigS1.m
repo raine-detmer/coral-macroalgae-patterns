@@ -15,8 +15,8 @@ N = 256;
 CMmap = interp1(vec, raw, linspace(100,0, N),'pchip');
 
 % region of bistability
-flow = 0.1111; % lower tipping point (calculated in Fig2.m)
-fup = 0.1229; % upper tipping point
+flow = 0.1674; % lower tipping point (calculated in Fig2.m)
+fup = 0.1878; % upper tipping point
 
 %% Briggs: ODE (non-spatial) bifurcation diagram
 
@@ -41,10 +41,12 @@ phiM = 0.01;
 % herbivore parameters
 rH = 0.2;%0.1; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
-f = 0.08; % herbivore fishing pressure
+f = 0; % herbivore fishing pressure
+phiH = 0.05; % external recruitment rate of herbivores
 
 % set of fishing pressure values
-fset = linspace(0.05, 0.15, 100);
+%fset = linspace(0.1, 0.2, 100);
+fset = linspace(0.12, 0.2, 120);
 
 % holding vectors for equilibrium values
 Cstars = NaN(length(fset), 4); % coral
@@ -63,7 +65,7 @@ for i = 1:length(fset)%for each fishing pressure
     % get the eqns to solve
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
-    eq3i = rH*H-dH*H*H-fi*H ==0; %H
+    eq3i = phiH + rH*H-dH*H*H-fi*H ==0; %H
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real
@@ -80,9 +82,14 @@ bstart = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
 % use vertcat to concatenate vertical vectors
 % for f on x axis:
-Cups = vertcat(Cstars(1:bstart-1, 2), Cstars(bstart:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
-Cmids = Cstars(:, 3); % unstable eq
-Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 2));
+% Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+% Cmids = Cstars(:, 2); % unstable eq
+% Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 3));
+
+Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:bend, 3), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cmids = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:bend, 2), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 1));
+
 
 Mups = vertcat(Mstars(1:bend, 1), Mstars(bend+1:end, 3)); 
 Mmids = vertcat(Mstars(1:bstart-1, 3), Mstars(bstart:bend, 2), Mstars(bend+1:end, 3));
@@ -94,9 +101,9 @@ Mlows = vertcat(Mstars(1:bend, 3), Mstars(bend+1:end, 1));
 %% Briggs: PDE bifurcation diagram
 
 % PDE parameters
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates of MI, C, H, and Mv
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates of MI, C, H, and Mv
 taxisM = 0; 
-taxisC = -0.5; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -144,7 +151,7 @@ b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
 
 %  values of fishing pressure
-fset21 = linspace(0.09, 0.13, 20); 
+fset21 = linspace(0.13, 0.19, 20); 
 
 % holding arrays
 Cruns = NaN(length(tset), length(xset),length(fset21));
@@ -173,7 +180,7 @@ pksumm = NaN(6,3,length(fset21)); % record characteristics of middle two peaks
     ftest = fset21(i);
 
      % run PDE
-     [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record full results
     Cruns(:, :,i) = solij(:,:,2);
@@ -206,7 +213,7 @@ pksumm = NaN(6,3,length(fset21)); % record characteristics of middle two peaks
    
     end 
 
-    toc % 31 seconds
+    toc % 40 seconds
  
 
 %% plot initial conditions 
@@ -229,7 +236,7 @@ load('code output/FigS6.mat','Mmxall','Mmnall', 'Cmxall', 'Cmnall')
 
 %% plot bifurcation diagram for macroalgae (Fig. 1a) and coral (Fig. 1b)
 
-fpts = [2, 6, 10, 14]; % elements of fset21 to highlight in the figure
+fpts = [3, 7, 12, 15]; % elements of fset21 to highlight in the figure
 
 fcol = [0.3020 0.2 0.9333]; % color for the fishing pressures
 
@@ -255,10 +262,10 @@ ax = gca;
 ax.TitleHorizontalAlignment = 'left';
 xline([flow fup]) % bistability region
 ylim([0 0.85])
-xlim([0.08, 0.14])
+xlim([0.12, max(fset)])
 hold on
 plot(fset, Mlows,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5) %Cups(:, ploti)
-text(0.113, 0.75, 'Bistable', 'Color', 'black','FontSize', 16)
+text(0.1715, 0.75, 'Bistable', 'Color', 'black','FontSize', 16)
 plot(fset, Mups,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5)
 plot(fset, Mmids,'Color', Mcol, "LineStyle","--", 'LineWidth', 2.5) % unstable
 plot(fset, Mlows,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5)
@@ -273,19 +280,19 @@ rng = find(Mmxall(:,1)-Mmnall(:,1)> 0.01);
 plotj = fpts(1); % f = 0.0921
 plot(fset21(plotj), Mmeans(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), Mmeans(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
-text(fset21(plotj)-0.002, Mmeans(plotj) + 0.03, 'f = 0.092', 'Color', fcol,'FontSize', 14)
+text(fset21(plotj)-0.002, Mmeans(plotj) + 0.04, 'f = 0.136', 'Color', fcol,'FontSize', 14)
 plotj = fpts(2); % f = 0.1005
 plot(fset21(plotj), Mmeans(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), Mmeans(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
-text(fset21(plotj)-0.008, Mmeans(plotj) + 0.03, 'f = 0.101', 'Color', fcol,'FontSize', 14)
+text(fset21(plotj)-0.008, Mmeans(plotj) + 0.04, 'f = 0.149', 'Color', fcol,'FontSize', 14)
 plotj = fpts(3); % f = 0.1089
 plot(fset21(plotj), Mmeans(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), Mmeans(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
-text(fset21(plotj)-0.0072, Mmeans(plotj) + 0.03, 'f = 0.109', 'Color', fcol,'FontSize', 14)
+text(fset21(plotj)-0.009, Mmeans(plotj) + 0.04, 'f = 0.165', 'Color', fcol,'FontSize', 14)
 plotj = fpts(4); % f = 0.1174
 plot(fset21(plotj), Mmeans(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), Mmeans(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
-text(fset21(plotj)+0.0013, Mmeans(plotj) - 0.025, 'f = 0.117', 'Color', fcol,'FontSize', 14)
+text(fset21(plotj)+0.0013, Mmeans(plotj) - 0.025, 'f = 0.174', 'Color', fcol,'FontSize', 14)
 hold off
 hold on
 % make legend
@@ -307,7 +314,7 @@ ax = gca;
 ax.TitleHorizontalAlignment = 'left';
 xline([flow fup]) % bistability region
 ylim([0 0.85])
-xlim([0.08, 0.14])
+xlim([0.12, max(fset)])
 hold on
 plot(fset, Clows,'Color', Ccol, "LineStyle","-", 'LineWidth', 2.5) 
 plot(fset, Cups,'Color', Ccol, "LineStyle","-", 'LineWidth', 2.5)
@@ -349,7 +356,7 @@ t.TileSpacing = 'compact';
 nexttile
 plotj = fpts(4); % f value
 plot(xset(b1i:b2i),Cruns(end, b1i:b2i, plotj), 'LineWidth',2, 'Color', Ccol)
-text(-90, 1.5,'f = 0.117','FontSize',14, 'Color', fcol)
+text(-90, 1.5,'f = 0.174','FontSize',14, 'Color', fcol)
 ylim([-0.01 1.75])
 xlabel(t, 'Location','FontSize',22) % t for shared label
 ylabel(t, 'Abundance','FontSize',22)
@@ -364,7 +371,7 @@ legend('Coral cover', 'Macroalgal cover', 'Herbivore biomass', 'location', 'nort
 nexttile
 plotj = fpts(3);% f value
 plot(xset(b1i:b2i),Cruns(end, b1i:b2i, plotj), 'LineWidth',2, 'Color', Ccol)
-text(-90, 1.5,'f = 0.109','FontSize',14, 'Color', fcol)
+text(-90, 1.5,'f = 0.165','FontSize',14, 'Color', fcol)
 ylim([-0.01 1.75])
 hold on
 plot(xset(b1i:b2i),Mruns(end, b1i:b2i, plotj), 'LineWidth',2, 'Color', Mcol)
@@ -375,7 +382,7 @@ hold off
 nexttile
 plotj = fpts(2); % f value
 plot(xset(b1i:b2i),Cruns(end, b1i:b2i, plotj), 'LineWidth',2, 'Color', Ccol)
-text(-90, 1.5,'f = 0.101','FontSize',14, 'Color', fcol)
+text(-90, 1.5,'f = 0.149','FontSize',14, 'Color', fcol)
 ylim([-0.01 1.75])
 hold on
 plot(xset(b1i:b2i),Mruns(end, b1i:b2i, plotj), 'LineWidth',2, 'Color', Mcol)
@@ -386,7 +393,7 @@ hold off
 nexttile
 plotj = fpts(1); % f value
 plot(xset(b1i:b2i),Cruns(end, b1i:b2i, plotj), 'LineWidth',2, 'Color', Ccol)
-text(-90, 1.5,'f = 0.092','FontSize',14, 'Color', fcol)
+text(-90, 1.5,'f = 0.136','FontSize',14, 'Color', fcol)
 ylim([-0.01 1.75])
 hold on
 plot(xset(b1i:b2i),Mruns(end, b1i:b2i, plotj), 'LineWidth',2, 'Color', Mcol)
@@ -461,7 +468,7 @@ xline([flow fup]) % bistability region
 xlim([min(fset21) max(fset21)])
 ylim([0 1.05*max(squeeze(pksumm(5,1,:)))])
 ylabel({'Coral patch';'density'},'FontSize',22)
-text(0.113, 0.09, 'Bistable', 'Color', 'black','FontSize', 16)
+text(0.172, 0.09, 'Bistable', 'Color', 'black','FontSize', 16)
 nexttile
 % now patch widths
 plot(fset21, squeeze(pksumm(2,1,:)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
