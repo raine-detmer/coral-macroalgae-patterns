@@ -3,7 +3,7 @@
 
 function[sol] = Briggs2HrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, ...
     dH, f1,f2, diff,taxisM1,taxisC1, taxisT1,taxisM2,taxisC2, taxisT2, diric,x,t,initC,Clow, Chigh, Mlow, Mhigh, rnsize, ...
-    ampC0, ampM0, period0,icchoice)
+    ampC0, ampM0, period0,icchoice, phiH)
 
 % initial conditions for sin wave case
 %if icchoice ==5
@@ -28,15 +28,18 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
         Mi = omega*y(4)+gTI*(1-y(1)-y(4)-y(2))*y(1)+gamma*gTI*y(1)*y(2)-di*(y(3)+y(5))*y(1);
         %C = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C; % coral
         C = phiC*(1-y(1)-y(4)-y(2))+gTC*(1-y(1)-y(4)-y(2))*y(2) -gamma*gTI*y(1)*y(2)-dC*y(2); % coral
-        H1 = rH*y(3)-2*dH*y(3)*y(3)-f1*y(3); % herbivores
-        H2 = rH*y(5)-2*dH*y(5)*y(5)-f2*y(5); % second herbivores
+        H1 = 0.5*phiH + rH*y(3)-2*dH*y(3)*y(3)-f1*y(3); % herbivores
+        H2 = 0.5*phiH + rH*y(5)-2*dH*y(5)*y(5)-f2*y(5); % second herbivores
         Mv = phiM*(1-y(1)-y(4)-y(2))+rM*(1-y(1)-y(4)-y(2))*y(1)+gTV*(1-y(1)-y(4)-y(2))*y(4)-dv*(y(3)+y(5))*y(4)-omega*y(4);
         s = [Mi,C,H1, Mv, H2]';
     end
 %Initial conditions
     function [y0] = pdeic(xi)
-        k1 = (rH-f1)/(2*dH); % initial herbivore abundance at each location
-        k2 = (rH-f2)/(2*dH); % initial herbivore abundance at each location
+        % k1 = (rH-f1)/(2*dH); % initial herbivore abundance at each location
+        % k2 = (rH-f2)/(2*dH); % initial herbivore abundance at each location
+        k1 = ((rH-f1) + sqrt((rH-f1)^2 + 4*2*dH*0.5*phiH))/(2*2*dH); % initial herbivore abundance at each location
+        k2 = ((rH-f2) + sqrt((rH-f2)^2 + 4*2*dH*0.5*phiH))/(2*2*dH); % initial herbivore abundance at each location
+        
         
         % low coral
         if icchoice == 1

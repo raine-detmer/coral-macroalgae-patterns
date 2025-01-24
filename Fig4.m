@@ -6,7 +6,7 @@
 % parameter setup
 
 % PDE parameters
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
 taxisC = 0;%0; % taxis rate toward coral
 taxisT = 0;
@@ -61,11 +61,11 @@ b1i = find(abs(xset-b1)==min(abs(xset-b1)));
 b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
 %  values of fishing pressure
-fset21 = linspace(0.07, 0.125, 20); % for higher bistability region
+%fset21 = linspace(0.07, 0.125, 20); % for higher bistability region
 
-rH = 0.2; % herbivore growth rate
-fhigh21 = 2*fset21; % if 2f > 0.2, fhigh = 0.2, otherwise fhigh = 2f
-fhigh21(fhigh21>rH) = rH;
+% rH = 0.2; % herbivore growth rate
+% fhigh21 = 2*fset21; % if 2f > 0.2, fhigh = 0.2, otherwise fhigh = 2f
+% fhigh21(fhigh21>rH) = rH;
 
 
 
@@ -73,18 +73,24 @@ fhigh21(fhigh21>rH) = rH;
 
 % first choose a fishing pressure just below the lower nonspatial tipping point
 
-finitL = linspace(0.11, 0.115, 100);
-finitU = linspace(0.12, 0.125, 100);
+% region of bistability
+flow = 0.1674; % lower tipping point (calculated in Fig2.m)
+fup = 0.1878; % upper tipping point
 
-parset = [0.01, 0.1, 0.4, 0.4, 0.02, 0.01, 0.5, 0.2, 2, 2, 0.4, 0.2, 0.1];
+% finitL = linspace(0.11, 0.115, 100);
+% finitU = linspace(0.12, 0.125, 100);
+% 
+% parset = [0.01, 0.1, 0.4, 0.4, 0.02, 0.01, 0.5, 0.2, 2, 2, 0.4, 0.2, 0.1];
+% 
+% tic
+% [lowtp, uptp] =  tpfun(parset, finitL, finitU);
+% toc % about 33 seconds
+% 
+% % save fishing pressure to use
+% favg = lowtp(1)-0.005*lowtp(1);
+% %favg = 0.1105+0.0000053053;
 
-tic
-[lowtp, uptp] =  tpfun(parset, finitL, finitU);
-toc % about 33 seconds
-
-% save fishing pressure to use
-favg = lowtp(1)-0.005*lowtp(1);
-%favg = 0.1105+0.0000053053;
+favg = 0.99*flow;
 
 % now calculate equilibrium macroalgal cover at this fishing pressure
 
@@ -106,7 +112,8 @@ phiM = 0.01;
 % herbivore parameters
 rH = 0.2;%0.1; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
-f = 0.08; % herbivore fishing pressure
+f = 0; % herbivore fishing pressure
+phiH = 0.05; % recruitment rate
 
 
 % turn off warning
@@ -116,7 +123,7 @@ warning('off','symbolic:numeric:NumericalInstability')
 
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
-    eq3i = rH*H-dH*H*H-fi*H ==0; %H
+    eq3i = phiH + rH*H-dH*H*H-fi*H ==0; %H
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real
@@ -125,26 +132,66 @@ warning('off','symbolic:numeric:NumericalInstability')
    % Mstars(1:length(soli.Mi)) = sort(soli.Mi + soli.Mv);
 
    Mref = soli.Mi+soli.Mv;
-   Mref = Mref(2);
+   %Mref = Mref(2);
+
+
+%% check herbivore equilibria
+
+((rH-favg) + sqrt((rH-favg)^2 + 4*dH*phiH))/(2*dH)
+
+((rH-favg) + sqrt((rH-favg)^2 + 4*2*dH*0.5*phiH))/(2*2*dH) + ((rH-favg) + sqrt((rH-favg)^2 + 4*2*dH*0.5*phiH))/(2*2*dH)
+
+% (rH-favg)/dH
+% (rH-favg)/(2*dH) + (rH-favg)/(2*dH)
+
+% check proportions
+(rH-favg)/(2*dH) + (rH-favg)/(2*dH)
+(rH-f1set(2))/(2*dH) + (rH-f2set(2))/(2*dH)
+
+((rH-favg) + sqrt((rH-favg)^2 + 4*2*dH*0.5*phiH))/(2*2*dH) + ((rH-favg) + sqrt((rH-favg)^2 + 4*2*dH*0.5*phiH))/(2*2*dH)
+
+((rH-f1set(1)) + sqrt((rH-f1set(1))^2 + 4*2*dH*0.5*phiH))/(2*2*dH) + ((rH-f2set(1)) + sqrt((rH-f2set(1))^2 + 4*2*dH*0.5*phiH))/(2*2*dH)
+
+% just keeping average fishing pressure the same doesn't work with external
+% recruitment...
+
+% different approach: choose fishing pressures to keep HA + HB constant
+% hhh = ((rH-favg) + sqrt((rH-favg)^2 + 4*2*dH*0.5*phiH))/(2*2*dH);
+% rH-(4*dH*hhh^2-phiH)/(2*hhh)
+% favg
+
+Htot = ((rH-favg) + sqrt((rH-favg)^2 + 4*dH*phiH))/(2*dH);
+
+% fishing pressures on population A
+f1set = linspace(0.3*favg, 3*favg, 10);
+HAeq = ((rH-f1set) + sqrt((rH-f1set).^2 + 4*2*dH*0.5*phiH))/(2*2*dH); % need .^ to operate on each element
+
+HBeq = Htot - HAeq;
+
+f2set = rH-(4*dH*HBeq.^2-phiH)./(2*HBeq)
 
 %% PDE simulations
 % get set of fishing pressures to use
-%fhigh21 = 2*favg; % if 2f > 0.2, fhigh = 0.2, otherwise fhigh = 2f
-%fhigh21(fhigh21>rH) = rH;
-%fhigh21 = 0.2; % max high fishing pressure is 0.2
-%2*favg-0.2 % min is 0.0210
-f1set = round(linspace(0.021, 0.2, 9),4); % 9 entries and round a little to ensure ratio of 1 is included
-f2set = 2*round(favg,4)-f1set;
+% f1set = round(linspace(0.021, 0.2, 9),4); % 9 entries and round a little to ensure ratio of 1 is included
+% f2set = 2*round(favg,4)-f1set;
+
+% total herbivore abundance in all cases
+Htot = ((rH-favg) + sqrt((rH-favg)^2 + 4*dH*phiH))/(2*dH);
+% fishing pressures on population A
+f1set = linspace(0.3*favg, 3*favg, 10);
+HAeq = ((rH-f1set) + sqrt((rH-f1set).^2 + 4*2*dH*0.5*phiH))/(2*2*dH); % need .^ to operate on each element
+HBeq = Htot - HAeq;
+f2set = rH-(4*dH*HBeq.^2-phiH)./(2*HBeq);
 
 fset21 = favg;
 
 % 4 different options for the second population
-taxisC2set = [1 1 0 0];
-diffH2set = [0.2 1 0.2 1];
+taxisC2set = [1.25 1.25 0 0];
+diffH2set = [0.25 1 0.25 1];
 
 parset = taxisC2set;
 
-taxisC1 = -1; % first population is strongly attracted to coral
+taxisC1 = -1.25; % first population is strongly attracted to coral
 
 % also record the proportion of herbivores that are the pattern-driving
 % population
@@ -167,7 +214,7 @@ tic
 for k = 1:length(parset) % for each step width
    
     taxisC2 = taxisC2set(k);
-    diffs = [0.05,0.05,0.2, 0,diffH2set(k)];
+    diffs = [0.05,0.05,0.25, 0,diffH2set(k)];
 
  for j = 1:length(f1set) % for different fishing pressure ratios
 
@@ -178,7 +225,7 @@ for k = 1:length(parset) % for each step width
     %for i = 1
 
      % run PDE
-    [solij] = Briggs2HrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, f1test, f2test,diffs,taxisM1,taxisC1, taxisT1,taxisM2,taxisC2, taxisT2, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = Briggs2HrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, f1test, f2test,diffs,taxisM1,taxisC1, taxisT1,taxisM2,taxisC2, taxisT2, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record full results
     Cruns(:, :,i, k, j) = solij(:,:,2);
@@ -235,9 +282,15 @@ Ctx1 = [0 0 0];
 Mmeans = Mmeans1;
 Hprops = Hprops1;
 
-favg = 0.1105+0.0000053053; % calculated above and pasted here
-f1set = round(linspace(0.021, 0.2, 9),4); % 9 entries and round a little to ensure ratio of 1 is included
-f2set = 2*round(favg,4)-f1set;
+flow = 0.1674; % lower tipping point (calculated in Fig2.m)
+fup = 0.1878; % upper tipping point
+favg = 0.99*flow;
+
+Htot = ((rH-favg) + sqrt((rH-favg)^2 + 4*dH*phiH))/(2*dH);
+f1set = linspace(0.3*favg, 3*favg, 10);
+HAeq = ((rH-f1set) + sqrt((rH-f1set).^2 + 4*2*dH*0.5*phiH))/(2*2*dH); % need .^ to operate on each element
+HBeq = Htot - HAeq;
+f2set = rH-(4*dH*HBeq.^2-phiH)./(2*HBeq);
 
 %fratios = f1set./f2set;
 % update: plot f proportion instead
@@ -255,13 +308,14 @@ t.TileIndexing = 'rowmajor'; % default is rowmajor
 t.TileSpacing = 'tight';
 nexttile
 plot(fratios,squeeze(Hprops(1,1,:)),'-', 'LineWidth',2.25, 'Color', Ctx1) % 'MarkerSize',7
+ylim([0 1.1])
 hold on
 plot(fratios,squeeze(Hprops(1,2,:)),'--', 'LineWidth',2.75, 'Color', Ctx1) % 4th element for transparency
 plot(fratios,squeeze(Hprops(1,3,:)),'-', 'LineWidth',2.25, 'Color', Ctx0) % 4th element for transparency
 plot(fratios,squeeze(Hprops(1,4,:)),'--', 'LineWidth',3.75, 'Color', Ctx0) % 4th element for transparency
 hold off
 ylabel({'Proportion herbivores'; 'in population A'},'FontSize',22)
-text(0.01, 0.97, 'a)', 'Color', 'black','FontSize', 18)
+text(0.01, 1.05, 'a)', 'Color', 'black','FontSize', 18)
 %legend elements
  hold on
 lg2{1} = plot(nan, '-', 'LineWidth', 2.5,'Color', Ctx1);%'MarkerSize',7
@@ -269,7 +323,7 @@ lg2{2} = plot(nan, '--', 'LineWidth', 2.5,'Color', Ctx1);
 lg2{3} = plot(nan, '-', 'LineWidth', 2.5,'Color', Ctx0);
 lg2{4} = plot(nan, '--', 'LineWidth', 2.5,'Color', Ctx0);
 hold off
-legend([lg2{:}],{'\tau_{c} = +1, D_{H} = 0.2', '\tau_{c} = +1, D_{H} = 1', '\tau_{c} = 0, D_{H} = 0.2', '\tau_{c} = 0, D_{H} = 1'}, 'Location', 'northeast')
+legend([lg2{:}],{'\tau_{c} = +1.25, D_{H} = 0.25', '\tau_{c} = +1.25, D_{H} = 1', '\tau_{c} = 0, D_{H} = 0.25', '\tau_{c} = 0, D_{H} = 1'}, 'Location', 'northeast')
 lgd = legend;
 %title(lgd,{'Population two''s';'traits'})
 title(lgd,{'Population B';'traits'})
@@ -280,6 +334,7 @@ nexttile
 %figure(9)
 plot(fratios,squeeze(Mmeans(1,1,:)),'-', 'LineWidth',2.25, 'Color', Ctx1) 
 yline(double(Mref), 'Linewidth',1.5)
+ylim([0 0.42])
 hold on
 plot(fratios,squeeze(Mmeans(1,2,:)),'--', 'LineWidth',2.75, 'Color', Ctx1) 
 plot(fratios,squeeze(Mmeans(1,3,:)),'-', 'LineWidth',2.25, 'Color', Ctx0) 
@@ -288,7 +343,7 @@ text(0.02, 0.035,{'Nonspatial'; 'equilibrium'},'FontSize',14)
 hold off
 xlabel(t,'Proportion fishing effort on population A','FontSize',22)
 ylabel('Mean macroalgal cover','FontSize',22)
-text(0.01, 0.38, 'b)', 'Color', 'black','FontSize', 18)
+text(0.01, 0.4, 'b)', 'Color', 'black','FontSize', 18)
 
 
 %% check distributions

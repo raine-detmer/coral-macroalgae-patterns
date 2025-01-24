@@ -1,5 +1,6 @@
 % README: code for making Figure 2
 
+% takes about an hour and a half to run
 
 %% get the lower boundary of bistability
 
@@ -23,11 +24,12 @@ phiM = 0.01;
 % herbivore parameters
 rH = 0.2;%0.1; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
-f = 0.08; % herbivore fishing pressure
+f = 0; % herbivore fishing pressure
+phiH = 0.05; % herbivore external recruitment rate
 
 % calculate get the tipping point more precisely
 % set of fishing values
-fset2 = linspace(0.11, 0.115, 50);
+fset2 = linspace(0.165, 0.169, 50);
 
 % holding vector of eq values
 Cstars2 = NaN(length(fset2), 4);
@@ -39,7 +41,7 @@ for i = 1:length(fset2)%for each element of gset
     % solve the equations
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
-    eq3i = rH*H-dH*H*H-fi*H ==0; %H
+    eq3i = phiH + rH*H-dH*H*H-fi*H ==0; %H
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real
@@ -56,7 +58,7 @@ bstart2 = find(isnan(Cstars2(:, 3))==0, 1, 'first' );% start of bistability regi
 %% get the upper boundary of bistability
 
 % set of fishing values
-fset3 = linspace(0.12, 0.125, 50);
+fset3 = linspace(0.185, 0.189, 50);
 
 % holding vector of eq values
 Cstars3 = NaN(length(fset3), 4);
@@ -68,7 +70,7 @@ for i = 1:length(fset3)%for each element of gset
     % solve the equations
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
-    eq3i = rH*H-dH*H*H-fi*H ==0; %H
+    eq3i = phiH + rH*H-dH*H*H-fi*H ==0; %H
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real
@@ -89,9 +91,9 @@ fup = fset3(bend3); % upper boundary of bistability
 %% PDE parameter set up
 
 % PDE parameters
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
-taxisC = -0.5; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -147,8 +149,11 @@ b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
 
 % taxis and diffusion sets
-txset = linspace(0, 1, 9);
-diffHset = linspace(0.05, 1, 9); % don't go lower than 0.05 bc that's the diff values for C and M
+%txset = linspace(0, 1, 9);
+%diffHset = linspace(0.05, 1, 9); % don't go lower than 0.05 bc that's the diff values for C and M
+
+txset = linspace(0, 1.25, 10);
+diffHset = linspace(0.05, 1.25, 10); % don't go lower than 0.05 bc that's the diff values for C and M
 
 
 errortol = 0.0005; % error tolerance for binary search algorithm
@@ -167,8 +172,8 @@ birange = flip(ftest1:0.0002:fset3(bend3));
 
 
 % reset defaults
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
-taxisC = -0.5;%0; % taxis rate toward coral
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+taxisC = -0.75;%0; % taxis rate toward coral
 
 parset = txset; % parameter set 
 
@@ -189,7 +194,7 @@ for k = 1:length(parset) % for each step width
    % first test if there are patterns just past the tipping point
     ftest = ftest1;
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
       % record peak metrics
      Cvalsijk = solij(end, :, 2);
@@ -213,7 +218,7 @@ if npks1 >= pkN % if there was at least one patch, calculate region of fishing p
     fmid = (fend + fstart)/2; % calculate the fishing pressure
     ftest = fmid;
     % run the pde with this fishing pressure
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % get the peak characteristics
      Cvalsijk = solij(end, :, 2);
@@ -244,7 +249,7 @@ while abs(fend-fstart) >= errortol
     fmid = (fend + fstart)/2; % calculate the fishing pressure
     ftest = fmid;
     % run the pde with this fishing pressure
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record peak metrics
      Cvalsijk = solij(end, :, 2);
@@ -272,7 +277,7 @@ if npks1 < pkN % if there weren't peaks at the test point
     for bb = 1:length(birange)
         ftest = birange(bb);
     % run the pde with this fishing pressure
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % get the peak characteristics
      Cvalsijk = solij(end, :, 2);
@@ -298,7 +303,7 @@ if npks1 < pkN % if there weren't peaks at the test point
     fmid = (fend + fstart)/2; % calculate the fishing pressure
     ftest = fmid;
     % run the pde with this fishing pressure
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % get the peak characteristics
      Cvalsijk = solij(end, :, 2);
@@ -324,7 +329,7 @@ end
 
 end
 
-toc % 1741 seconds
+toc % 3000 seconds
 
 
 flims1 = flims;
@@ -344,8 +349,8 @@ flims1 = flims;
 %% repeat for diffusion
 
 % reset defaults
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
-taxisC = -0.5;%0; % taxis rate toward coral
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+taxisC = -0.75;%0; % taxis rate toward coral
 
 parset = diffHset; % parameter set 
 
@@ -366,7 +371,7 @@ for k = 1:length(parset) % for each step width
    % first test if there are patterns just past the tipping point
     ftest = ftest1;
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
       % record peak metrics
      Cvalsijk = solij(end, :, 2);
@@ -392,7 +397,7 @@ if npks1 >= pkN % if there was at least one patch, calculate region of fishing p
     fmid = (fend + fstart)/2; % calculate the fishing pressure
     ftest = fmid;
     % run the pde with this fishing pressure
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % get the peak characteristics
      Cvalsijk = solij(end, :, 2);
@@ -422,7 +427,7 @@ while abs(fend-fstart) >= errortol
     fmid = (fend + fstart)/2; % calculate the fishing pressure
     ftest = fmid;
     % run the pde with this fishing pressure
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record peak metrics
      Cvalsijk = solij(end, :, 2);
@@ -450,7 +455,7 @@ if npks1 < pkN % if there weren't peaks at the test point
     for bb = 1:length(birange)
         ftest = birange(bb);
     % run the pde with this fishing pressure
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % get the peak characteristics
      Cvalsijk = solij(end, :, 2);
@@ -476,7 +481,7 @@ if npks1 < pkN % if there weren't peaks at the test point
     fmid = (fend + fstart)/2; % calculate the fishing pressure
     ftest = fmid;
     % run the pde with this fishing pressure
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % get the peak characteristics
      Cvalsijk = solij(end, :, 2);
@@ -504,7 +509,7 @@ end
 
 end
 
-toc % 1085 seconds
+toc % 1310 seconds
 
 flims2 = flims;
 
@@ -523,16 +528,19 @@ parset2 = [round(length(xset)/2), round(length(xset)/64)];
 % binary search algorithm 
 
 % reset defaults
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates 
-taxisC = -0.5;%0; % taxis rate toward coral
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates 
+taxisC = -0.75;%0; % taxis rate toward coral
 
 
-ftest = fset2(bstart2)-0.005*fset2(bstart2);
+%ftest = fset2(bstart2)-0.005*fset2(bstart2);
+ftest = fset2(bstart2)-0.01*fset2(bstart2);
 
-diffHset3 = linspace(0.05, 1.5, 10);
+% diffHset3 = linspace(0.05, 1.5, 10);
 % make sure 1 (max value of diffHset) and 0.2 (default) are included
-diffHset3 = sort([diffHset3, 0.2, 1]);
+% diffHset3 = sort([diffHset3, 0.2, 1]);
 
+diffHset3 = diffHset; % use same as above
+%diffHset3 = sort([diffHset3, 0.25]);
 
 parset = diffHset3; % parameter set 
 
@@ -572,7 +580,7 @@ while abs(txend-txstart) >= errortol
     %taxisC
    
     % run the pde with this level of taxis
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record peak metrics
      Cvalsijk = solij(end, :, 2);
@@ -597,16 +605,19 @@ end
 end 
 end
 
-toc % 937 seconds
+toc % 750 seconds
 
 
 % save results
 mntx1 = mntx;
 
+ beep on 
+ beep
+
 
 %% test peaks
 % taxisC = -0.1934;
-% [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+% [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 % Cvalsijk = solij(end, :, 2);
 %       Mvalsijk = solij(end, :, 1)+ solij(end,:,4);
 %       [mxpks] = peakfun2(Cvalsijk, Mvalsijk, xset, pkthresh, b1, b2);
@@ -617,19 +628,28 @@ mntx1 = mntx;
 
 %% plot everything together
 
-flow = 0.1111; % lower tipping point (calculated in txdiff12)
-fup = 0.1229; % upper tipping point
+flow = 0.1674; % lower tipping point (calculated above)
+fup = 0.1878; % upper tipping point
 
 %fref = fset2(bstart2)-0.005*fset2(bstart2);
-fref = (flow+0.000022449)-0.005*(flow+0.000022449);
+fref = fset2(bstart2)-0.01*fset2(bstart2);
 
 C1 = [0.0118    0.6588    0.6588];
 C2 = [0.1412    0.0824    0.9294];
 
-txset = linspace(0, 1, 9);
-diffHset = linspace(0.05, 1, 9); % don't go lower than 0.05 bc that's the diff values for C and M
-diffHset3 = linspace(0.05, 1.5, 10);
-diffHset3 = sort([diffHset3, 0.2, 1]);
+%txset = linspace(0, 1, 9);
+%diffHset = linspace(0.05, 1, 9); % don't go lower than 0.05 bc that's the diff values for C and M
+
+txset = linspace(0, 1.25, 10);
+diffHset = linspace(0.05, 1.25, 10); % don't go lower than 0.05 bc that's the diff values for C and M
+
+
+%diffHset3 = linspace(0.05, 1.5, 10);
+%diffHset3 = sort([diffHset3, 0.2, 1]);
+
+diffHset3 = diffHset; % use same as above
+% diffHset3 = sort([diffHset3, 0.25]);
+
 
 
 mntx = mntx1;
@@ -650,18 +670,18 @@ filldown = repelem(0, length(diffHset3));
 btwx = [diffHset3, fliplr(diffHset3)];
 btwy2 = [-mntx(1, :, 1), fliplr(fillup)];
 plot(ax1, diffHset3, -mntx(1, :, 1),'Color', C1)
-ylim([min(diffHset3) 1.2])
+ylim([min(diffHset3) max(diffHset3)])
 %ylim([0 1.2])
-xlim([min(diffHset3) 1.2])
+xlim([min(diffHset3) max(diffHset3)])
 %xlabel('Herbivore diffusion rate (m^2 yr^{-1})','FontSize',19)
 %ylabel('Taxis towards coral (m^2 C^{-1} yr^{-1})','FontSize',19)
 xlabel('Herbivore diffusion rate','FontSize',19)
 ylabel('Taxis towards coral','FontSize',19)
-text(0.07, 1.15, 'a)', 'Color', [0 0 0],'FontSize', 17)
+text(0.07, 1.2, 'a)', 'Color', [0 0 0],'FontSize', 17)
 hold on
 fill(btwx, btwy2, C1, 'FaceAlpha',0.1, 'EdgeColor', C1);
 text(0.6, 0.2, 'No patterns', 'Color', [0 0 0],'FontSize', 18)
-text(0.45, 0.85, 'Patterns', 'Color', [0 0 0],'FontSize', 18)
+text(0.45, 0.95, 'Patterns', 'Color', [0 0 0],'FontSize', 18)
 hold off
 % next initial conditions
 fillup = 100*repelem(max(-mntx(1, :, 2)), length(diffHset3));
@@ -676,14 +696,14 @@ plot(diffHset3, -mntx(1, :, 1),'Color', C1,'LineWidth', 2.5)
 plot(diffHset3, -mntx(1, :, 2),'Color', C2,'LineWidth', 2.5)
 lnCol = [0.9098    0.0745    0.0745];
 %lnCol = [0 0 0];
-line([0.2 0.2], [txset(1) txset(end)], 'Color', lnCol, 'LineStyle', '-', 'LineWidth', 1)
-line([diffHset(1) diffHset(end)], [0.5 0.5], 'Color', lnCol, 'LineStyle', '-', 'LineWidth', 1)
+line([0.25 0.25], [diffHset(1)*1.4 txset(end)], 'Color', lnCol, 'LineStyle', '-', 'LineWidth', 1)
+line([diffHset(1)*1.4 diffHset(end)], [0.75 0.75], 'Color', lnCol, 'LineStyle', '-', 'LineWidth', 1)
 % add markers
-plot(0.2, diffHset(1), 'o','Color',lnCol,'MarkerSize',7,'MarkerEdgeColor',lnCol, 'LineWidth', 1.5)
+plot(0.25, diffHset(1)*1.2, 'o','Color',lnCol,'MarkerSize',7,'MarkerEdgeColor',lnCol, 'LineWidth', 1.5)
 %plot(0.2, txset(1), 'o','Color',lnCol,'MarkerSize',7,'MarkerEdgeColor',lnCol, 'LineWidth', 1.5)
-plot(0.2, txset(end), 'o','Color',lnCol,'MarkerSize',7.5, 'MarkerFaceColor',lnCol, 'MarkerEdgeColor',lnCol)
-plot(diffHset(1), 0.5, 'diamond','Color',lnCol,'MarkerSize',7,'MarkerEdgeColor',lnCol, 'LineWidth', 1.5)
-plot(diffHset(end), 0.5, 'diamond','Color',lnCol,'MarkerSize',7.5, 'MarkerFaceColor',lnCol, 'MarkerEdgeColor',lnCol)
+plot(0.25, txset(end)*0.99, 'o','Color',lnCol,'MarkerSize',7.5, 'MarkerFaceColor',lnCol, 'MarkerEdgeColor',lnCol)
+plot(diffHset(1)*1.2, 0.75, 'diamond','Color',lnCol,'MarkerSize',7,'MarkerEdgeColor',lnCol, 'LineWidth', 1.5)
+plot(diffHset(end)*0.99, 0.75, 'diamond','Color',lnCol,'MarkerSize',7.5, 'MarkerFaceColor',lnCol, 'MarkerEdgeColor',lnCol)
 hold off
 % legend elements
 hold on
@@ -699,20 +719,20 @@ ax2 = nexttile(4,[1,2]);
 flims = flims1;
 % fill in the region between lower and upper limits
 % there can't be any NaNs here
-btwx = [txset(3:end), fliplr(txset(3:end))];
-btwy = [flims(1,3:end,1), fliplr(flims(2,3:end,1))];
+btwx = [txset(4:end), fliplr(txset(4:end))];
+btwy = [flims(1,4:end,1), fliplr(flims(2,4:end,1))];
 % polygon for region of bistability
 pgon = polyshape([2 -1 -1 2], [flow flow fup fup]);
 plot(ax2, txset, squeeze(flims(1,:,1)),'Color',C1, "LineStyle","-", 'LineWidth', 2.5)
 %xlim([min(txset) max(txset)])
 xlim([min(diffHset) max(diffHset)])
 %xlim([0 max(txset)])
-ylim([0.06 1.1*fup])
+ylim([0.08 1.1*fup])
 %text(0.02, 0.13, 'b)', 'Color', [0 0 0],'FontSize', 16)
-text(0.07, 0.13, 'b)', 'Color', [0 0 0],'FontSize', 16)
+text(0.07, 0.198, 'b)', 'Color', [0 0 0],'FontSize', 16)
 hold off
 %text(0.01, 0.119, 'Bistable', 'Color', 'black','FontSize', 14)
-text(0.08, 0.119, 'Bistable', 'Color', 'black','FontSize', 14)
+text(0.08, 0.18, 'Bistable', 'Color', 'black','FontSize', 14)
 hold on
 ylabel('Fishing pressure','FontSize',19)
 xlabel('Taxis towards coral','FontSize',19)
@@ -726,16 +746,16 @@ plot(txset, squeeze(flims(2,:,1)),'Color',C1, "LineStyle","-", 'LineWidth', 2.5)
 fill(btwx, btwy, C1, 'FaceAlpha',0.05, 'EdgeColor', C1);
 hold off
 %second set of initial conditions
-btwx = [txset(2:end), fliplr(txset(2:end))];
-btwy = [flims(1,2:end,2), fliplr(flims(2,2:end,2))];
+btwx = [txset(3:end), fliplr(txset(3:end))];
+btwy = [flims(1,3:end,2), fliplr(flims(2,3:end,2))];
 hold on 
 plot(txset, squeeze(flims(1,:,2)),'Color',C2, "LineStyle","-", 'LineWidth', 2.5)
 plot(txset, squeeze(flims(2,:,2)),'Color',C2, "LineStyle","-", 'LineWidth', 2.5)
 fill(btwx, btwy, C2, 'FaceAlpha',0.05, 'EdgeColor', C2);
 % add reference markers
-plot(diffHset(1), fref, 'o','Color',lnCol,'MarkerSize',7,'MarkerEdgeColor',lnCol, 'LineWidth', 1.5)
+plot(diffHset(1)*1.2, fref, 'o','Color',lnCol,'MarkerSize',7,'MarkerEdgeColor',lnCol, 'LineWidth', 1.5)
 %plot(txset(1), fref, 'o','Color',lnCol,'MarkerSize',7,'MarkerEdgeColor',lnCol, 'LineWidth', 1.5)
-plot(txset(end), fref, 'o','Color',lnCol,'MarkerSize',7.5, 'MarkerFaceColor',lnCol, 'MarkerEdgeColor',lnCol)
+plot(txset(end)*0.99, fref, 'o','Color',lnCol,'MarkerSize',7.5, 'MarkerFaceColor',lnCol, 'MarkerEdgeColor',lnCol)
 hold off
 % next tile
 ax3 = nexttile(9,[1,2]); 
@@ -747,8 +767,8 @@ pgon = polyshape([2 -1 -1 2], [flow flow fup fup]);
 plot(ax3, diffHset, squeeze(flims(1,:,1)),'Color',C1, "LineStyle","-", 'LineWidth', 2.5)
 xlim([min(diffHset) max(diffHset)])
 %xlim([0 max(diffHset)])
-ylim([0.06 1.1*fup])
-text(0.07, 0.13, 'c)', 'Color', [0 0 0],'FontSize', 16)
+ylim([0.08 1.1*fup])
+text(0.07, 0.198, 'c)', 'Color', [0 0 0],'FontSize', 16)
 hold off
 %text(0.01, 0.115, 'Bistable', 'Color', 'black','FontSize', 16)
 hold on
@@ -771,8 +791,9 @@ plot(diffHset, squeeze(flims(1,:,2)),'Color',C2, "LineStyle","-", 'LineWidth', 2
 plot(diffHset, squeeze(flims(2,:,2)),'Color',C2, "LineStyle","-", 'LineWidth', 2.5)
 fill(btwx, btwy, C2, 'FaceAlpha',0.05, 'EdgeColor', C2);
 % add reference markers
-plot(diffHset(1), fref, 'diamond','Color',lnCol,'MarkerSize',7,'MarkerEdgeColor',lnCol, 'LineWidth', 1.5)
-plot(diffHset(end), fref, 'diamond','Color',lnCol,'MarkerSize',7.5, 'MarkerFaceColor',lnCol, 'MarkerEdgeColor',lnCol)
+plot(diffHset(1)*1.2, fref, 'diamond','Color',lnCol,'MarkerSize',7,'MarkerEdgeColor',lnCol, 'LineWidth', 1.5)
+plot(diffHset(end)*0.99, fref, 'diamond','Color',lnCol,'MarkerSize',7.5, 'MarkerFaceColor',lnCol, 'MarkerEdgeColor',lnCol)
+%yline(fref, 'Color', lnCol)
 hold off
 
 %% save everything
@@ -784,7 +805,9 @@ save('code output/Fig2.mat','flims1', 'flims2','mntx1')
 % load everything
 
 
-load('code output/Fig2.mat','flims1', 'flims2','mntx1')
+%load('code output/Fig2.mat','flims1', 'flims2','mntx1')
+
+%load('code output/Fig2.mat','flims1', 'flims2')
 
 %load('code output/Fig3.mat','flims1', 'flims2','mntx1')
 % load one thing
@@ -792,22 +815,36 @@ load('code output/Fig2.mat','flims1', 'flims2','mntx1')
 
 %% test bounds
 
-% C0widths = parset2(2);  % step widths
-% initC = stepfun(C0widths, xset); 
-% 
-% ii = 2;
-% 
-% taxisC = mntx1(1,ii,2) - errortol;
-% 
-% diffs = [0.05,0.05,diffHset3(ii), 0];
-% 
-% [soltest] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
-% 
-% 
-% figure(2)
-% plot(xset, soltest(end,:,2), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
-% hold on 
-% plot(xset, soltest(end,:,1) + soltest(end,:,4), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
-% hold off
+t_end = 50000;
+tset = linspace(0,t_end,2500); 
 
+
+C0widths = parset2(2);  % step widths
+initC = stepfun(C0widths, xset); 
+
+ii = 2;
+
+%taxisC = mntx1(1,ii,2) - errortol;
+%diffs = [0.05,0.05,diffHset3(ii), 0];
+
+taxisC = -0.75;
+
+diffs = [0.05,0.05,diffHset3(10), 0];
+
+% ftest1 = fset2(bstart2)-0.001*fset2(bstart2); % for initial test of patterns
+% ftest = fset2(bstart2)-0.005*fset2(bstart2);
+ftest = fset2(bstart2)-0.005*fset2(bstart2);
+
+[soltest] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
+
+
+ [mxpkstest] = peakfun2(soltest(end, :, 2), solij(end, :, 1)+ solij(end,:,4), xset, pkthresh, b1, b2);
+
+figure(2)
+plot(xset, soltest(end,:,2), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
+hold on 
+plot(xset, soltest(end,:,1) + soltest(end,:,4), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
+hold off
+
+mxpkstest
 
