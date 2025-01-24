@@ -1,13 +1,15 @@
 % README: code for making Figure S7
 
+% takes about 20 min to run
 
 %% set up
 Mcol = [0.4667 0.6745 0.1882];
 Ccol = [0.3020 0.7451 0.9333];
 Hcol = [0.9294 0.6941 0.1255];
 
-flow = 0.1111; % lower tipping point (calculated in Fig2.m)
-fup = 0.1229; % upper tipping point
+% region of bistability
+flow = 0.1674; % lower tipping point (calculated in Fig2.m)
+fup = 0.1878; % upper tipping point
 
 %% parameter set up
 
@@ -26,13 +28,14 @@ phiM = 0.01;
 % herbivore parameters
 rH = 0.2;% herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
-f = 0.08; % herbivore fishing pressure
+f = 0; % herbivore fishing pressure
+phiH = 0.05; % external recruitment rate
 
 
 % PDE parameters
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates 
 taxisM = 0; 
-taxisC = -0.5; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -61,7 +64,7 @@ initC = stepfun(C0widths, xset);
 % for icchoice = 3
 rnsize = 1; % magnitude of random variation (0-1)
 
-ftest = 0.1106;
+ftest = 0.99*flow; % just below tipping point
 
 % time
 t_end = 3*50000;% 6000 then 100000 then 500000
@@ -88,11 +91,11 @@ icchoice = 4; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 
 icchoiceH = 2;
 
 % start with default taxis and diffusion values
-taxisC = -0.5;
-diffs = [0.05, 0.05, 0.2, 0];
+taxisC = -0.75;
+diffs = [0.05, 0.05, 0.25, 0];
 
 % values of fishing pressure
-fset21 = linspace(0.09, 0.13, 20); 
+fset21 = linspace(0.13, 0.19, 20); 
 
 ftest = fset21(end);
 
@@ -117,7 +120,7 @@ M0low = 0.4;%lowset(1);
 H0widths = wset(5);
 initH = stepfun(H0widths, xset); 
 
-[solij] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, icchoiceH, initH); 
+[solij] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, icchoiceH, initH, phiH); 
 
     % record full results
     CrunsHst0 = solij(1,b1i:b2i,2);
@@ -175,7 +178,7 @@ for k = 1:length(wset) % for each step width
 
         ftest = fset21(i);
      % run PDE
-    [solij] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, icchoiceH, initH); 
+    [solij] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, icchoiceH, initH, phiH); 
 
     % record full results
     Cruns(1, :,i, j, k) = solij(end,:,2);
@@ -194,7 +197,7 @@ for k = 1:length(wset) % for each step width
 
 end 
 
-toc % took 292 seconds
+toc % took 362 seconds
 
 
 % save these results
@@ -221,7 +224,7 @@ M0low = 0.1;
 H0widths = wset(5);
 initH = stepfun(H0widths, xset); 
 
-[solij] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, icchoiceH, initH); 
+[solij] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, icchoiceH, initH, phiH); 
 
     % record full results
     
@@ -263,7 +266,7 @@ for k = 1:length(wset) % for each step width
 
         ftest = fset21(i);
      % run PDE
-    [solij] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, icchoiceH, initH); 
+    [solij] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, icchoiceH, initH, phiH); 
 
     % record full results
     Cruns(1, :,i, j, k) = solij(end,:,2);
@@ -281,7 +284,7 @@ for k = 1:length(wset) % for each step width
 
 end 
 
-toc % took 289 seconds
+toc % took 271 seconds
 
 
 % NEW SECTION
@@ -309,7 +312,7 @@ M0low = lowset(1);
 H0widths = wset(5);
 initH = stepfun(H0widths, xset); 
 
-[solij] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, icchoiceH, initH); 
+[solij] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, icchoiceH, initH, phiH); 
 
     % record full results
     CrunsHst03 = solij(1,b1i:b2i,2);
@@ -353,7 +356,7 @@ for k = 1:length(wset) % for each step width
 
         ftest = fset21(i);
      % run PDE
-    [solij] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, icchoiceH, initH); 
+    [solij] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, icchoiceH, initH, phiH); 
 
     % record full results
     Cruns(1, :,i, j, k) = solij(end,:,2);
@@ -371,7 +374,7 @@ for k = 1:length(wset) % for each step width
 
 end 
 
-toc % took 406 seconds
+toc % took 485 seconds
 
 
 % save these results
@@ -385,7 +388,7 @@ HmeansHst3 = Hmeans;
 %% plotting
 % plot results
 
-fset21 = linspace(0.09, 0.13, 20); 
+fset21 = linspace(0.13, 0.19, 20); 
 
 allcols = parula(length(wset));
 
@@ -428,10 +431,11 @@ hold off
 hold on
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 ylim([0 0.75])
+%xlim([0.12 0.2])
 title('Effect of initial conditions on equilibria','FontSize',18)
 hold off
 ylabel('Equilibrium M cover','FontSize',18)
-text(0.1125, 0.65, 'Bistable', 'Color', 'black','FontSize', 14)
+text(0.1725, 0.65, 'Bistable', 'Color', 'black','FontSize', 14)
 xline([flow fup]) % bistability region
 lgd = legend('1','1/2','1/4','1/8','1/16','1/32','1/64','1/96','1/128','0','','', 'Location','northwest', 'NumColumns', 2);
 title(lgd,{'Initial herbivore ''patch'' width';'(fraction total space)'})
@@ -457,6 +461,7 @@ hold off
 hold on
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 ylim([0 0.75])
+%xlim([0.12 0.2])
 hold off
 ylabel('Equilibrium M cover','FontSize',18)
 xline([flow fup]) % bistability region
@@ -485,6 +490,7 @@ hold off
 hold on
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 ylim([0 0.75])
+%xlim([0.12 0.2])
 hold off
 xlabel('Fishing pressure','FontSize',18)
 ylabel('Equilibrium M cover','FontSize',18)
@@ -506,8 +512,8 @@ save('code output/FigS7.mat','CmeansHst', 'MmeansHst', 'HmeansHst', 'CmeansHst2'
 
 %% load results
 
-load('code output/FigS7.mat','CmeansHst', 'MmeansHst', 'HmeansHst', 'CmeansHst2', ...
-    'MmeansHst2', 'HmeansHst2', 'CmeansHst3','MmeansHst3', 'HmeansHst3')
+% load('code output/FigS7.mat','CmeansHst', 'MmeansHst', 'HmeansHst', 'CmeansHst2', ...
+%     'MmeansHst2', 'HmeansHst2', 'CmeansHst3','MmeansHst3', 'HmeansHst3')
 
 
 

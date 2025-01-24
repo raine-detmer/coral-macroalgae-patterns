@@ -4,7 +4,7 @@
 
 function[sol] = BriggsHrPDEHIC(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, ...
     dH, f, diff,taxisM,taxisC, taxisT, diric,x,t,initC,Clow, Chigh, Mlow, Mhigh, rnsize, ...
-    ampC0, ampM0, period0,icchoice, icchoiceH, initH)
+    ampC0, ampM0, period0,icchoice, icchoiceH, initH, phiH)
 
 % Find solution by simulating with PDE solver
 sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
@@ -21,7 +21,7 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
         Mi = omega*y(4)+gTI*(1-y(1)-y(4)-y(2))*y(1)+gamma*gTI*y(1)*y(2)-di*y(3)*y(1);
         %C = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C; % coral
         C = phiC*(1-y(1)-y(4)-y(2))+gTC*(1-y(1)-y(4)-y(2))*y(2) -gamma*gTI*y(1)*y(2)-dC*y(2); % coral
-        H = rH*y(3)-dH*y(3)*y(3)-f*y(3); % herbivores
+        H = phiH + rH*y(3)-dH*y(3)*y(3)-f*y(3); % herbivores
         %H = rH*y(3)*(1-y(3)/k); % herbivores
         %Mv = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv;
         Mv = phiM*(1-y(1)-y(4)-y(2))+rM*(1-y(1)-y(4)-y(2))*y(1)+gTV*(1-y(1)-y(4)-y(2))*y(4)-dv*y(3)*y(4)-omega*y(4);
@@ -29,7 +29,7 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
     end
 %Initial conditions
     function [y0] = pdeic(xi)
-        k = (rH-f)/dH; % initial herbivore abundance at each location
+        k = ((rH-f) + sqrt((rH-f)^2 + 4*dH*phiH))/(2*dH); % initial herbivore abundance at each location
 
         if icchoiceH ==1 % homogeneous fish
             H0 = k;
