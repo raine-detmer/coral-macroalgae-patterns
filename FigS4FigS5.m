@@ -15,8 +15,9 @@ N = 256;
 CMmap = interp1(vec, raw, linspace(100,0, N),'pchip');
 
 
-flow = 0.1111; % lower tipping point (calculated in Fig2.m)
-fup = 0.1229; % upper tipping point
+% region of bistability
+flow = 0.1674; % lower tipping point (calculated in Fig2.m)
+fup = 0.1878; % upper tipping point
 
 %% Briggs: ODE (non-spatial) bifurcation diagram
 
@@ -41,10 +42,11 @@ phiM = 0.01;
 % herbivore parameters
 rH = 0.2;%0.1; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
-f = 0.08; % herbivore fishing pressure
+f = 0; % herbivore fishing pressure
+phiH = 0.05; % external recruitment
 
 % set of fishing values
-fset = linspace(0.05, 0.15, 100);
+fset = linspace(0.12, 0.2, 100);
 
 % holding vector of eq values
 Cstars = NaN(length(fset), 4);%not sure how many pos, real eq...maybe run a single 
@@ -64,7 +66,7 @@ for i = 1:length(fset)%for each element of gset
     % solve the equations
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
-    eq3i = rH*H-dH*H*H-fi*H ==0; %H
+    eq3i = phiH + rH*H-dH*H*H-fi*H ==0; %H
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real
@@ -81,9 +83,9 @@ bstart = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
 % use vertcat to concatenate vertical vectors to get the upper, middle, and
 % lower equilibria
-Cups = vertcat(Cstars(1:bstart-1, 2), Cstars(bstart:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(4,)
-Cmids = Cstars(:, 3);
-Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 2));
+Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:bend, 3), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cmids = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:bend, 2), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 1));
 
 Mups = vertcat(Mstars(1:bend, 1), Mstars(bend+1:end, 3)); 
 Mmids = vertcat(Mstars(1:bstart-1, 3), Mstars(bstart:bend, 2), Mstars(bend+1:end, 3));
@@ -93,9 +95,9 @@ Mlows = vertcat(Mstars(1:bend, 3), Mstars(bend+1:end, 1));
 %% Briggs: PDE bifurcation diagram
 
 % PDE parameters
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
-taxisC = -0.5;%0; % taxis rate toward coral
+taxisC = -0.75;%0; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundariess for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -141,7 +143,7 @@ b1i = find(abs(xset-b1)==min(abs(xset-b1)));
 b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
 %  values of fishing pressure
-fset21 = linspace(0.09, 0.13, 20); % for higher bistability region
+fset21 = linspace(0.13, 0.19, 20); 
 
 % initial conditions: patch widths
 wset = round([length(xset)/2, length(xset)/16, length(xset)/64]);
@@ -174,7 +176,7 @@ for j = 1:length(wset) % for each initial condition
     ftest = fset21(i);
 
      % run PDE
-     [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record full results
     Cruns(:, :,i,j) = solij(:,b1i:b2i,2);
@@ -197,8 +199,7 @@ for j = 1:length(wset) % for each initial condition
 
 end 
 
-toc % 164 seconds
-
+toc % 200 seconds
 
 
 
@@ -246,10 +247,10 @@ ax2 = nexttile(2,[4,3]); % nexttile(x, [r,c]) means put the upper left corner of
 plot(ax2, pgon,'FaceColor','black','FaceAlpha',0.025)
 xline([flow fup]) % bistability region
 ylim([0 0.85])
-xlim([0.08, 0.14])
+xlim([0.12, 0.2])
 hold on
 plot(fset, Mlows,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5) %Cups(:, ploti)
-text(0.112, 0.75, 'Bistable', 'Color', 'black','FontSize', 16)
+text(0.1712, 0.75, 'Bistable', 'Color', 'black','FontSize', 16)
 plot(fset, Mups,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5)
 plot(fset, Mmids,'Color', Mcol, "LineStyle","--", 'LineWidth', 2.5) % unstable
 % add the max and mins from the other ICs
@@ -285,11 +286,11 @@ plot(fset21, MmeansP, '.','MarkerSize',30,'Color', Mcol)
 plotj = fpts(1); % f value = 0.1005
 plot(fset21(plotj), MmeansP(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), MmeansP(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
-text(fset21(plotj)-0.008, MmeansP(plotj) + 0.03, 'f = 0.101', 'Color', fcol,'FontSize', 14)
+text(fset21(plotj)-0.008, MmeansP(plotj) + 0.04, 'f = 0.146', 'Color', fcol,'FontSize', 14)
 plotj = fpts(2); % f value =  0.1089
 plot(fset21(plotj), MmeansP(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), MmeansP(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
-text(fset21(plotj)-0.008, MmeansP(plotj) + 0.03, 'f = 0.109', 'Color', fcol,'FontSize', 14)
+text(fset21(plotj)-0.01, MmeansP(plotj) + 0.04, 'f = 0.158', 'Color', fcol,'FontSize', 14)
 hold off
 % add the legend
 hold on
@@ -311,10 +312,10 @@ HrunsP = Hruns(:,:,plotj, pp);
 ax3 = nexttile(5,[2,3]); 
 plot(ax3,xset(b1i:b2i),MrunsP(end,:), 'LineWidth',2, 'Color', Mcol)
 ylim([0 1.6])
-text(-90, 1.4,'f = 0.109','FontSize',14, 'Color', fcol)
-text(-40, 1.4,'Coral','FontSize',14, 'Color', Ccol)
-text(-10, 1.4,'Macroalgae','FontSize',14, 'Color', Mcol)
-text(40, 1.4,'Herbivores','FontSize',14, 'Color', Hcol)
+text(-90, 1.45,'f = 0.158','FontSize',14, 'Color', fcol)
+text(-40, 1.45,'Coral','FontSize',14, 'Color', Ccol)
+text(-10, 1.45,'Macroalgae','FontSize',14, 'Color', Mcol)
+text(40, 1.45,'Herbivores','FontSize',14, 'Color', Hcol)
 hold on
 plot(xset(b1i:b2i),CrunsP(end,:), 'LineWidth',2, 'Color', Ccol)
 plot(xset(b1i:b2i),HrunsP(end,:), 'LineWidth',2, 'Color', Hcol)
@@ -327,7 +328,7 @@ HrunsP = Hruns(:,:,plotj, pp);
 ax4 = nexttile(19,[2,3]); 
 plot(ax4,xset(b1i:b2i),MrunsP(end,:), 'LineWidth',2, 'Color', Mcol)
 ylim([0 1.6])
-text(-90, 1.4,'f = 0.101','FontSize',14, 'Color', fcol)
+text(-90, 1.4,'f = 0.146','FontSize',14, 'Color', fcol)
 hold on
 plot(xset(b1i:b2i),CrunsP(end,:), 'LineWidth',2, 'Color', Ccol)
 plot(xset(b1i:b2i),HrunsP(end,:), 'LineWidth',2, 'Color', Hcol)
@@ -366,7 +367,7 @@ ax2 = nexttile(2,[4,3]);
 plot(ax2, pgon,'FaceColor','black','FaceAlpha',0.025)
 xline([flow fup]) % bistability region
 ylim([0 0.85])
-xlim([0.08, 0.14])
+xlim([0.12, 0.2])
 hold on
 plot(fset, Mlows,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5)
 plot(fset, Mups,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5)
@@ -404,11 +405,11 @@ plot(fset21, MmeansP, '.','MarkerSize',30,'Color', Mcol)
 plotj = fpts(1); % f value = 0.1005
 plot(fset21(plotj), MmeansP(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), MmeansP(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
-text(fset21(plotj)-0.008, MmeansP(plotj) + 0.03, 'f = 0.101', 'Color', fcol,'FontSize', 14)
+text(fset21(plotj)-0.0095, MmeansP(plotj) + 0.038, 'f = 0.146', 'Color', fcol,'FontSize', 14)
 plotj = fpts(2); % f value =  0.1089
 plot(fset21(plotj), MmeansP(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), MmeansP(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
-text(fset21(plotj)-0.008, MmeansP(plotj) + 0.03, 'f = 0.109', 'Color', fcol,'FontSize', 14)
+text(fset21(plotj)-0.01, MmeansP(plotj) + 0.04, 'f = 0.158', 'Color', fcol,'FontSize', 14)
 hold off
 
 % nexttile: equilibrium spatial distributions
@@ -419,7 +420,7 @@ HrunsP = Hruns(:,:,plotj, pp);
 ax3 = nexttile(5,[2,3]); 
 plot(ax3,xset(b1i:b2i),MrunsP(end,:), 'LineWidth',2, 'Color', Mcol)
 ylim([0 1.6])
-text(-90, 1.4,'f = 0.109','FontSize',14, 'Color', fcol)
+text(-90, 1.4,'f = 0.158','FontSize',14, 'Color', fcol)
 hold on
 plot(xset(b1i:b2i),CrunsP(end,:), 'LineWidth',2, 'Color', Ccol)
 plot(xset(b1i:b2i),HrunsP(end,:), 'LineWidth',2, 'Color', Hcol)
@@ -432,7 +433,7 @@ HrunsP = Hruns(:,:,plotj, pp);
 ax4 = nexttile(19,[2,3]); 
 plot(ax4,xset(b1i:b2i),MrunsP(end,:), 'LineWidth',2, 'Color', Mcol)
 ylim([0 1.6])
-text(-90, 1.4,'f = 0.101','FontSize',14, 'Color', fcol)
+text(-90, 1.4,'f = 0.146','FontSize',14, 'Color', fcol)
 hold on
 plot(xset(b1i:b2i),CrunsP(end,:), 'LineWidth',2, 'Color', Ccol)
 plot(xset(b1i:b2i),HrunsP(end,:), 'LineWidth',2, 'Color', Hcol)
@@ -472,7 +473,7 @@ ax2 = nexttile(2,[4,3]);
 plot(ax2, pgon,'FaceColor','black','FaceAlpha',0.025)
 xline([flow fup]) % bistability region
 ylim([0 0.85])
-xlim([0.08, 0.14])
+xlim([0.12, 0.2])
 hold on
 plot(fset, Mlows,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5) %Cups(:, ploti)
 plot(fset, Mups,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5)
@@ -510,11 +511,11 @@ plot(fset21, MmeansP, '.','MarkerSize',30,'Color', Mcol)
 plotj = fpts(1); % f value = 0.1005
 plot(fset21(plotj), MmeansP(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), MmeansP(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
-text(fset21(plotj)-0.008, MmeansP(plotj) + 0.03, 'f = 0.101', 'Color', fcol,'FontSize', 14)
+text(fset21(plotj)-0.01, MmeansP(plotj) + 0.04, 'f = 0.146', 'Color', fcol,'FontSize', 14)
 plotj = fpts(2); % f value =  0.1089
 plot(fset21(plotj), MmeansP(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), MmeansP(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
-text(fset21(plotj)-0.008, MmeansP(plotj) + 0.03, 'f = 0.109', 'Color', fcol,'FontSize', 14)
+text(fset21(plotj)-0.01, MmeansP(plotj) + 0.04, 'f = 0.158', 'Color', fcol,'FontSize', 14)
 hold off
 
 % nexttile: equilibrium spatial distributions
@@ -525,7 +526,7 @@ HrunsP = Hruns(:,:,plotj, pp);
 ax3 = nexttile(5,[2,3]);
 plot(ax3,xset(b1i:b2i),MrunsP(end,:), 'LineWidth',2, 'Color', Mcol)
 ylim([0 1.6])
-text(-90, 1.4,'f = 0.109','FontSize',14, 'Color', fcol)
+text(-90, 1.45,'f = 0.158','FontSize',14, 'Color', fcol)
 hold on
 plot(xset(b1i:b2i),CrunsP(end,:), 'LineWidth',2, 'Color', Ccol)
 plot(xset(b1i:b2i),HrunsP(end,:), 'LineWidth',2, 'Color', Hcol)
@@ -538,19 +539,20 @@ HrunsP = Hruns(:,:,plotj, pp);
 ax4 = nexttile(19,[2,3]); 
 plot(ax4,xset(b1i:b2i),MrunsP(end,:), 'LineWidth',2, 'Color', Mcol)
 ylim([0 1.6])
-text(-90, 1.4,'f = 0.101','FontSize',14, 'Color', fcol)
+text(-90, 1.4,'f = 0.146','FontSize',14, 'Color', fcol)
 hold on
 plot(xset(b1i:b2i),CrunsP(end,:), 'LineWidth',2, 'Color', Ccol)
 plot(xset(b1i:b2i),HrunsP(end,:), 'LineWidth',2, 'Color', Hcol)
 hold off
 
 
-%% surface plots
+
+%% make surface plots
 
 
 fpts = [6, 10]; % fishing pressures to show
 
-tmx = 500; % number of timepoints to plot
+tmx = 1500; % number of timepoints to plot
 
 tset([1, 100, 200, 300, 400, 500]); 
 % 0    0.2971    0.5971    0.8972    1.1972    1.4973
@@ -569,7 +571,7 @@ CrunsP = Cruns(1:tmx,:,plotj, pp);
 surf(CrunsP,'FaceAlpha',1, 'EdgeColor','none')
 colormap(CMmap)
 view(0,90)
-title({'f = 0.101'; 'Initial patch width = 1/2 total space'},'FontSize',14)
+title({'f = 0.146'; 'Initial patch width = 1/2 total space'},'FontSize',14)
 %xticklabels([-100 -50 0 50 100]) % make the xaxis labels match the distribution plots
 xticklabels([ -100  -75  -50  -25    0   25   50   75  100]) % make the xaxis labels match the distribution plots
 yticklabels([ 0*10^4    0.3*10^4   0.6*10^4    0.9*10^4    1.2*10^4    1.5*10^4]) % make the yaxis labels match actual timepoints
@@ -579,7 +581,7 @@ CrunsP = Cruns(1:tmx,:,plotj, pp);
 surf(CrunsP,'FaceAlpha',1, 'EdgeColor','none')
 colormap(CMmap)
 view(0,90)
-title({'f = 0.109'; 'Initial patch width = 1/2 total space'},'FontSize',14)
+title({'f = 0.158'; 'Initial patch width = 1/2 total space'},'FontSize',14)
 xticklabels([ -100  -75  -50  -25    0   25   50   75  100]) % make the xaxis labels match the distribution plots
 yticklabels([ 0*10^4    0.3*10^4   0.6*10^4    0.9*10^4    1.2*10^4    1.5*10^4]) % make the yaxis labels match actual timepoints
 nexttile
