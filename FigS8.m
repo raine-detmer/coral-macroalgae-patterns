@@ -17,14 +17,15 @@ phiM = 0.01;
 % herbivore parameters
 rH = 0.2;%0.1; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
-f = 0.08; % herbivore fishing pressure
+f = 0; % herbivore fishing pressure
+phiH = 0.05; % external herbivore recruitment
 
 
 % PDE set up
 % PDE parameters
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates of MI, C, H, and Mv
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates of MI, C, H, and Mv
 taxisM = 0; 
-taxisC = -0.5; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -81,7 +82,7 @@ lowset = linspace(0,0.25, 10);
 highset = 0.5-lowset;
 
 % just look at a fishing pressure in the lower part of the balloon
-fset21 = 0.10;
+fset21 = 0.15;
 
 % holding arrays
 % record avg abundance at final timepoint for each parameter combination
@@ -101,7 +102,7 @@ tic
 
         ftest = fset21(i);
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record full results
     % record spatial averages at final time point
@@ -146,7 +147,7 @@ for k = 1:length(fixedset) % for each step width
 
         ftest = fset21(i);
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record spatial averages at final time point
     Cmeans(i, j, k) = mean(solij(end, :, 2));
@@ -194,7 +195,7 @@ for k = 1:length(fixedset) % for each step width
 
         ftest = fset21(i);
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record spatial averages at final time point
     Cmeans(i, j, k) = mean(solij(end, :, 2));
