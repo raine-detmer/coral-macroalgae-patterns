@@ -1,12 +1,13 @@
 % README: code for making Figures S15, S18, and S19
 
+% takes about 20 min to run
 
 %% general PDE set up
 
 % PDE parameters
-diffs = [0.05,0.05,0.2,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
-taxisC = -0.5; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -69,15 +70,19 @@ phiM = 0.01;
 % herbivore parameters
 rH = 0.2;%0.1; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
-f = 0.08; % herbivore fishing pressure
+f = 0; % herbivore fishing pressure
+phiH = 0.05; % external recruitment rate
 
 % region of bistability
-flow0 = 0.1111; % lower tipping point (calculated in Fig2.m)
-fup0 = 0.1229; % upper tipping point
+% flow0 = 0.1111; % lower tipping point (calculated in Fig2.m)
+% fup0 = 0.1229; % upper tipping point
+flow0 = 0.1674; % lower tipping point (calculated in Fig2.m)
+fup0 = 0.1878; % upper tipping point
 
 %% Briggs model vary taxis
 %  values of fishing pressure
-fset21 = linspace(0.07, 0.13, 20); 
+%fset21 = linspace(0.07, 0.13, 20); 
+fset21 = linspace(0.13, 0.19, 20); 
 
 % values of taxis
 txset = linspace(-1, 1,9);
@@ -103,7 +108,7 @@ for k = 1:length(parset) % for each step width
 
         ftest = fset21(i);
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record results
     Cruns(1, :,i, k) = solij(end,:,2);
@@ -121,7 +126,7 @@ for k = 1:length(parset) % for each step width
 
 end 
 
-toc % most current: took 280 seconds
+toc % most current: took 300 seconds
 
 % save results
 Cruns1 = Cruns;
@@ -134,9 +139,10 @@ Hmeans1 = Hmeans;
 
 %% Briggs model vary herbivore diffusion
 
-taxisC = -0.5;
+taxisC = -0.75;
 
-diffHset = linspace(0.1, 0.5, 5);
+%diffHset = linspace(0.1, 0.5, 5);
+diffHset = linspace(0.15, 0.55, 5);
 
 parset = diffHset; % parameter set 
 
@@ -159,7 +165,7 @@ for k = 1:length(parset) % for each step width
 
         ftest = fset21(i);
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record full results
     Cruns(1, :,i, k) = solij(end,:,2);
@@ -177,7 +183,7 @@ for k = 1:length(parset) % for each step width
 
 end 
 
-toc % took about 135 seconds
+toc % took about 150 seconds
 
 
 
@@ -192,11 +198,11 @@ Hmeans2 = Hmeans;
 
 %% plot results (Fig S15)
 
-fset21 = linspace(0.07, 0.13, 20); % for higher bistability region
+fset21 = linspace(0.13, 0.19, 20); 
 txset = linspace(-1, 1,9);
-diffHset = linspace(0.1, 0.5, 5);
+diffHset = linspace(0.15, 0.55, 5);
 
-fset = linspace(0.05, 0.15, 100);
+% fset = linspace(0.05, 0.15, 100);
 
 parset = txset; 
 
@@ -234,7 +240,7 @@ hold off
 hold on 
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 ylim([0 0.75])
-text(0.112, 0.65, 'Bistable', 'Color', 'black','FontSize', 16)
+text(0.1725, 0.65, 'Bistable', 'Color', 'black','FontSize', 16)
 hold off
 xlabel(t,'Fishing pressure','FontSize',22)
 ylabel(t,{'Equilibrium';'macroalgal cover'},'FontSize',22)
@@ -268,7 +274,7 @@ title('b) Effect of herbivore diffusion', 'FontSize',16)
 ax = gca;
 ax.TitleHorizontalAlignment = 'left';
 xline([flow0 fup0]) % bistability region
-lgd = legend('0.1','0.2','0.3','0.4','0.5','','','', 'Location','northwest');
+lgd = legend('0.15','0.25','0.35','0.45','0.55','','','', 'Location','northwest');
 title(lgd,{'Herbivore'; 'diffusion rate'})
 lgd.FontSize = 14;
 
@@ -290,12 +296,14 @@ gz = 1; % grazing rate
 rH = 0.2;%0.1; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
 %f = 0; % herbivore fishing pressure
+phiH = 0.05; % herbivore external recruitment rate
 
 alpha = 0.01; % 0.01
 beta = 0.01;
 
 % set of fishing values
-fset = linspace(0.165, 0.18, 100);
+%fset = linspace(0.165, 0.18, 100);
+fset = linspace(0.3, 0.39, 150);
 
 % holding vector of eq values
 Cstars = NaN(length(fset), 4);%not sure how many pos, real eq...maybe run a single 
@@ -311,7 +319,7 @@ for i = 1:length(fset)%for each element of gset
 
     eq1i = a*M*C-gz*H*M/(1-C)+gamma*M*(1-M-C)+alpha*(1-M-C) == 0;
     eq2i = r*(1-M-C)*C-d*C-a*M*C+beta*(1-M-C) ==0;
-    eq3i = rH*H-dH*H*H-fi*H ==0;
+    eq3i = phiH + rH*H-dH*H*H-fi*H ==0;
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i],[M,C, H], [0 Inf; 0 Inf; 0 Inf]); % just pos and real
     % store the values of the eq C cover
@@ -340,16 +348,17 @@ Mlows = vertcat(Mstars(1:bend, 3), Mstars(bend+1:end, 1));
 % note ups and lows are from the coral's perspective still
 
 
+
 %% Mumby taxis simulations
 
 % reset defaults
-diffs = [0.05,0.05,0.2,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
-taxisC = -0.5;%0; % taxis rate toward coral
+taxisC = -0.75;%0; % taxis rate toward coral
 taxisT = 0;
 
 %  values of fishing pressure
-fset21 = linspace(0.13, 0.185, 20); % for higher bistability region
+fset21 = linspace(0.2, 0.4, 20); % bistability region is ~0.3157 to 0.3894
 
 % values of coral taxis
 txset = linspace(-1, 1,9);
@@ -377,7 +386,7 @@ for k = 1:length(parset) % for each step width
 
         ftest = fset21(i);
      % run PDE
-    [solij] = MumbyHPDE(r,a,gamma,gz, rH, dH, ftest, d, alpha,beta,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = MumbyHPDE(r,a,gamma,gz, rH, dH, ftest, d, alpha,beta,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record results
     Cruns(1, :,i, k) = solij(end,:,2);
@@ -395,7 +404,7 @@ for k = 1:length(parset) % for each step width
 
 end 
 
-toc % 292 seconds
+toc % 176 seconds
 
 
 % save results
@@ -412,12 +421,12 @@ Hmeans3 = Hmeans;
 
 
 % reset defaults
-diffs = [0.05,0.05,0.2,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
-taxisC = -0.5;%0; % taxis rate toward coral
+taxisC = -0.75;%0; % taxis rate toward coral
 taxisT = 0;
 
-diffHset = linspace(0.1, 0.5, 5);
+diffHset = linspace(0.15, 0.55, 5);
 
 parset = diffHset; % parameter set 
 
@@ -440,7 +449,7 @@ for k = 1:length(parset) % for each step width
 
         ftest = fset21(i);
      % run PDE
-    [solij] = MumbyHPDE(r,a,gamma,gz, rH, dH, ftest, d, alpha,beta,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = MumbyHPDE(r,a,gamma,gz, rH, dH, ftest, d, alpha,beta,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record results
     Cruns(1, :,i, k) = solij(end,:,2);
@@ -458,7 +467,7 @@ for k = 1:length(parset) % for each step width
 
 end 
 
-toc % took about 135 seconds
+toc % took about 124 seconds
 
 % save results
 Cruns4 = Cruns;
@@ -472,12 +481,12 @@ Hmeans4 = Hmeans;
 
 %% plot taxis and diffusion together
 %  values of fishing pressure
-fset21 = linspace(0.13, 0.185, 20); % for higher bistability region
+fset21 = linspace(0.2, 0.4, 20); % bistability region is ~0.3157 to 0.3894
 
 % values of coral taxis
 txset = linspace(-1, 1,9);
 % values of herbivore diffusion
-diffHset = linspace(0.1, 0.5, 5);
+diffHset = linspace(0.15, 0.55, 5);
 
 parset = txset; 
 
@@ -515,7 +524,7 @@ hold on
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 ylim([0 1])
 xlim([min(fset21) max(fset21)])
-text(0.167, 0.9, 'Bistable', 'Color', 'black','FontSize', 16)
+text(0.335, 0.9, 'Bistable', 'Color', 'black','FontSize', 16)
 hold off
 xlabel(t,'Fishing pressure','FontSize',22)
 ylabel(t,{'Equilibrium';'macroalgal cover'},'FontSize',22)
@@ -549,7 +558,7 @@ title('b) Effect of herbivore diffusion', 'FontSize',16)
 ax = gca;
 ax.TitleHorizontalAlignment = 'left';
 xline([flow fup]) % bistability region
-lgd = legend('0.1','0.2','0.3','0.4','0.5','','','', 'Location','northwest');
+lgd = legend('0.15','0.25','0.35','0.45','0.55','','','', 'Location','northwest');
 title(lgd,{'Herbivore'; 'diffusion rate'})
 lgd.FontSize = 14;
 
@@ -571,11 +580,13 @@ h = 2; % half-saturation constant for herbivore grazing
 rH = 0.2;%0.1; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
 %f = 0; % herbivore fishing pressure
+phiH = 0.05; % external recruitment
 
 alpha = 0.01;% 0.025
 beta = 0.01;
 
-fset = linspace(0.125, 0.15, 100); % bistable region is around 0.145
+%fset = linspace(0.125, 0.15, 100); % bistable region is around 0.145
+fset = linspace(0.18, 0.25, 100); % bistable region is around 0.24
 
 % holding vector of eq values
 Cstars = NaN(length(fset), 4);%not sure how many pos, real eq...maybe run a single 
@@ -591,7 +602,7 @@ for i = 1:length(fset)%for each element of gset
 
     eq1i = a*M*C-gz*H*M/(gz*h*M + 1)+gamma*M*(1-M-C)+alpha*(1-M-C) == 0;
     eq2i = r*(1-M-C)*C-d*C-a*M*C+beta*(1-M-C) ==0;
-    eq3i = rH*H-dH*H*H-fi*H ==0;
+    eq3i = phiH + rH*H-dH*H*H-fi*H ==0;
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i],[M,C, H], [0 Inf; 0 Inf; 0 Inf]); % just pos and real
     % store the values of the eq C cover
@@ -622,15 +633,15 @@ Mlows = vertcat(Mstars(1:bend, 3), Mstars(bend+1:end, 1));
 %% van de Leemput: coral taxis 
 
 %  values of fishing pressure
-fset21 = linspace(0.05, 0.16, 20); % for higher bistability region
+fset21 = linspace(0.12, 0.25, 20); % bistability region is ~ 0.1984 to 0.2422
 
 % values of coral taxis
 txset = linspace(-1, 1,9);
 
 % reset defaults
-diffs = [0.05,0.05,0.2,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
-taxisC = -0.5;%0; % taxis rate toward coral
+taxisC = -0.75;%0; % taxis rate toward coral
 taxisT = 0;
 
 parset = txset; % parameter set 
@@ -654,7 +665,7 @@ for k = 1:length(parset) % for each step width
 
         ftest = fset21(i);
      % run PDE
-    [solij] = altPDE(r,a,gamma,gz, rH, dH, ftest, h,d, alpha,beta,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = altPDE(r,a,gamma,gz, rH, dH, ftest, h,d, alpha,beta,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record results
     Cruns(1, :,i, k) = solij(end,:,2);
@@ -672,7 +683,7 @@ for k = 1:length(parset) % for each step width
 
 end 
 
-toc % 205 seconds
+toc % 237 seconds
 
 
 % save results
@@ -687,17 +698,14 @@ Hmeans5 = Hmeans;
 
 %% van de Leemput: herbivore diffusion
 
-%  values of fishing pressure
-fset21 = linspace(0.05, 0.16, 20); % for higher bistability region
-
 
 % reset defaults
-diffs = [0.05,0.05,0.2,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
-taxisC = -0.5; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
-diffHset = linspace(0.1, 0.5, 5);
+diffHset = linspace(0.15, 0.55, 5);
 
 parset = diffHset; % parameter set 
 
@@ -720,7 +728,7 @@ for k = 1:length(parset) % for each step width
 
         ftest = fset21(i);
      % run PDE
-    [solij] = altPDE(r,a,gamma,gz, rH, dH, ftest, h,d, alpha,beta,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = altPDE(r,a,gamma,gz, rH, dH, ftest, h,d, alpha,beta,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record results
     Cruns(1, :,i, k) = solij(end,:,2);
@@ -738,7 +746,7 @@ for k = 1:length(parset) % for each step width
 
 end 
 
-toc % about 115 seconds
+toc % about 140 seconds
 
 % save results
 Cruns6 = Cruns;
@@ -753,12 +761,12 @@ Hmeans6 = Hmeans;
 
 %% plot taxis and diffusion together
 %  values of fishing pressure
-fset21 = linspace(0.05, 0.16, 20); % for higher bistability region
+fset21 = linspace(0.12, 0.25, 20); % bistability region is ~ 0.1984 to 0.2422
 
 % values of coral taxis
 txset = linspace(-1, 1,9);
 % values of herbivore diffusion
-diffHset = linspace(0.1, 0.5, 5);
+diffHset = linspace(0.15, 0.55, 5);
 
 
 parset = txset; 
@@ -797,7 +805,7 @@ hold on
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 ylim([0 1])
 xlim([min(fset21) max(fset21)])
-text(0.129, 0.9, 'Bistable', 'Color', 'black','FontSize', 16)
+text(0.21, 0.9, 'Bistable', 'Color', 'black','FontSize', 16)
 hold off
 xlabel(t,'Fishing pressure','FontSize',22)
 ylabel(t,{'Equilibrium';'macroalgal cover'},'FontSize',22)
@@ -831,7 +839,7 @@ title('b) Effect of herbivore diffusion', 'FontSize',16)
 ax = gca;
 ax.TitleHorizontalAlignment = 'left';
 xline([flow2 fup2]) % bistability region
-lgd = legend('0.1','0.2','0.3','0.4','0.5','','','', 'Location','northwest');
+lgd = legend('0.15','0.25','0.35','0.45','0.55','','','', 'Location','northwest');
 title(lgd,{'Herbivore'; 'diffusion rate'})
 lgd.FontSize = 14;
 
@@ -847,13 +855,9 @@ save('code output/FigS15S18S19.mat','Cmeans1','Mmeans1', 'Hmeans1', 'Cmeans2', .
 
 
 %% load results
-% load('code output/FigS12S15S16.mat','Cmeans1','Mmeans1', 'Hmeans1', 'Cmeans2', ...
+
+% load('code output/FigS15S18S19.mat','Cmeans1','Mmeans1', 'Hmeans1', 'Cmeans2', ...
 %     'Mmeans2', 'Hmeans2', 'Cmeans3','Mmeans3', 'Hmeans3', 'Cmeans4', ...
 %     'Mmeans4', 'Hmeans4', 'Cmeans5','Mmeans5', 'Hmeans5', 'Cmeans6','Mmeans6', ...
 %     'Hmeans6')
-
-load('code output/FigS15S18S19.mat','Cmeans1','Mmeans1', 'Hmeans1', 'Cmeans2', ...
-    'Mmeans2', 'Hmeans2', 'Cmeans3','Mmeans3', 'Hmeans3', 'Cmeans4', ...
-    'Mmeans4', 'Hmeans4', 'Cmeans5','Mmeans5', 'Hmeans5', 'Cmeans6','Mmeans6', ...
-    'Hmeans6')
 
