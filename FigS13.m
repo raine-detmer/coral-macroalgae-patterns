@@ -10,8 +10,8 @@ Ccol = [0.3020 0.7451 0.9333];
 %% set up
 
 % bistability limits
-flow = 0.1111; % lower tipping point (calculated in Fig2.m)
-fup = 0.1229; % upper tipping point
+flow = 0.1674; % lower tipping point (calculated in Fig2.m)
+fup = 0.1878; % upper tipping point
 
 % nonspatial parameters
 % define parameters
@@ -30,14 +30,15 @@ phiM = 0.01;
 % herbivore parameters
 rH = 0.2;%0.1; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
-f = 0.08; % herbivore fishing pressure
+f = 0; % herbivore fishing pressure
+phiH = 0.05; % external recruitment rate
 
 % PDE set up  
 
 % PDE parameters
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
-taxisC = -0.5;%0; % taxis rate toward coral
+taxisC = -0.75;%0; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -62,7 +63,8 @@ M0low = 0.05;
 rnsize = 1; % magnitude of random variation (0-1)
 
 % for icchoice = 4
-C0widths = round(length(xset)/64);  % step widths
+%C0widths = round(length(xset)/64);  % step widths
+C0widths = round(length(xset)/16);  % step widths
 initC = stepfun(C0widths, xset); 
 
 % for icchoice = 5
@@ -83,15 +85,15 @@ b1i = find(abs(xset-b1)==min(abs(xset-b1)));
 b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
 %  values of fishing pressure
-fset21 = linspace(0.07, 0.13, 20); % for higher bistability region
+fset21 = linspace(0.13, 0.19, 20); 
 
-diffCM = linspace(0, 0.1,5); % default is 0.05 for both, note default Hdiff is 0.2
+diffCM = linspace(0, 0.1,5); % default is 0.05 for both, note default Hdiff is 0.25
 
 %% vary C diffusion
 
 parset = diffCM; % parameter set 
 
-txCset = [-0.5,0];% herbivore taxis
+txCset = [-0.75,0];% herbivore taxis
 
 % holding arrays
 Cruns = NaN(1, length(xset),length(fset21), length(parset), length(txCset));
@@ -111,13 +113,13 @@ for z = 1:length(txCset)
 
 for k = 1:length(parset) % for each step width
    
-    diffs = [0.05,parset(k),0.2, 0];
+    diffs = [0.05,parset(k),0.25, 0];
 
     for i = 1:length(fset21) % for each fishing pressure
 
         ftest = fset21(i);
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record full results
     Cruns(1, :,i, k, z) = solij(end,:,2);
@@ -136,7 +138,7 @@ end
 
 end 
 
-toc % took about 414 seconds (7 or so minutes)
+toc % took about 450 seconds 
 
 % save results
 CrunsCd =Cruns;
@@ -154,7 +156,7 @@ HmeansCd = Hmeans;
 
 parset = diffCM; % parameter set 
 
-txCset = [-0.5,0];% herbivore taxis
+txCset = [-0.75,0];% herbivore taxis
 
 % holding arrays
 Cruns = NaN(1, length(xset),length(fset21), length(parset), length(txCset));
@@ -174,13 +176,13 @@ for z = 1:length(txCset)
 
 for k = 1:length(parset) % for each step width
    
-    diffs = [parset(k),0.05,0.2, 0];
+    diffs = [parset(k),0.05,0.25, 0];
 
     for i = 1:length(fset21) % for each fishing pressure
 
         ftest = fset21(i);
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record full results
     Cruns(1, :,i, k, z) = solij(end,:,2);
@@ -199,7 +201,7 @@ end
 
 end 
 
-toc % took about 311 seconds (5 or so minutes)
+toc % took about 345 seconds
 
 % save results
 CrunsMd =Cruns;
@@ -213,8 +215,8 @@ HmeansMd = Hmeans;
 
 %% plot results
 
-fset21 = linspace(0.07, 0.13, 20); % for higher bistability region
-diffCM = linspace(0, 0.1,5); % default is 0.05 for both, note default Hdiff is 0.2
+fset21 = linspace(0.13, 0.19, 20); 
+diffCM = linspace(0, 0.1,5); % default is 0.05 for both, note default Hdiff is 0.25
 
 
 parset = diffCM;
@@ -242,12 +244,12 @@ end
 hold off
 hold on 
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
-ylim([0 0.75])
+ylim([0 0.85])
 hold off
 xlabel(t,'Fishing pressure','FontSize',22)
 ylabel(t,'Equilibrium macroalgal cover','FontSize',22)
 title('a) Coral diffusion, with herbivore taxis', 'FontSize',16)
-text(0.112, 0.65, 'Bistable', 'Color', 'black','FontSize', 16)
+text(0.1725, 0.65, 'Bistable', 'Color', 'black','FontSize', 16)
 ax = gca;
 ax.TitleHorizontalAlignment = 'left';
 xline([flow fup]) % bistability region
@@ -263,7 +265,7 @@ end
 hold off
 hold on 
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
-ylim([0 0.75])
+ylim([0 0.85])
 hold off
 title('b) Coral diffusion, no herbivore taxis', 'FontSize',16)
 ax = gca;
@@ -279,7 +281,7 @@ end
 hold off
 hold on 
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
-ylim([0 0.75])
+ylim([0 0.85])
 hold off
 xlabel(t,'Fishing pressure','FontSize',22)
 ylabel(t,'Equilibrium macroalgal cover','FontSize',22)
@@ -299,7 +301,7 @@ end
 hold off
 hold on 
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
-ylim([0 0.75])
+ylim([0 0.85])
 hold off
 title('d) Macroalgal diffusion, no herbivore taxis', 'FontSize',16)
 ax = gca;
@@ -312,10 +314,10 @@ xline([flow fup]) % bistability region
 
 %% save results
 
-save('code output/FigS13.mat','CmeansCd','MmeansCd', 'HmeansCd', 'CmeansMd', ...
-    'MmeansMd', 'HmeansMd')
+ save('code output/FigS13.mat','CmeansCd','MmeansCd', 'HmeansCd', 'CmeansMd', ...
+     'MmeansMd', 'HmeansMd')
 
 %% load results
 
- load('code output/FigS13.mat','CmeansCd','MmeansCd', 'HmeansCd', 'CmeansMd', ...
-     'MmeansMd', 'HmeansMd')
+ % load('code output/FigS13.mat','CmeansCd','MmeansCd', 'HmeansCd', 'CmeansMd', ...
+ %     'MmeansMd', 'HmeansMd')
