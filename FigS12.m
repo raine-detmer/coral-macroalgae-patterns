@@ -10,7 +10,8 @@ Hcol = [0.9294 0.6941 0.1255]; % herbivores
 % external recruitment sets
 % extHs = [0, 0.001, 0.005, 0.01];
 
-extHs = [0, 0.001, 0.01, 0.1];
+%extHs = [0, 0.001, 0.01, 0.1];
+extHs = [0, 0.05, 0.1, 0.15];
 
 %% Briggs model ODE
 
@@ -34,15 +35,16 @@ phiC = 0.01; % default 0.001
 % herbivore parameters
 rH = 0.2;%0.1; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
-f = 0.08; % herbivore fishing pressure
+f = 0; % herbivore fishing pressure
+phiH = 0.05; % external recruitment rate
 
 % set of fishing values
 %fset = linspace(0.05, 0.145, 100);
 %fset = linspace(0.08, 0.175, 100);
 
-fset1 = horzcat(linspace(0.05, 0.145, 100), linspace(0.146, 0.26, 20));
+fset1 = horzcat(linspace(0.05, 0.145, 100), linspace(0.145, 0.35, 20));
 
-fset2 = horzcat(linspace(0.05, 0.174, 20), linspace(0.175, 0.26, 100));
+fset2 = horzcat(linspace(0.05, 0.16, 20), linspace(0.16, 0.35, 100));
 
 % holding arrays for each combination of external recruitment pars
 Cups = NaN(length(fset1), 4); % 4 recruitment par combinations
@@ -63,14 +65,14 @@ warning('off','symbolic:numeric:NumericalInstability')
 tic
 for j = 1:length(extHs)
 %for j = 1
+phiH = extHs(j);
 
-if j < 4
+if j < 2
     fset = fset1;
 else
     fset = fset2;
 end 
 
-    phiH = extHs(j);
 
 % holding vector of eq values
 Cstars = NaN(length(fset), 8);%not sure how many pos, real eq...maybe run a single 
@@ -141,7 +143,7 @@ toc % about 136 seconds
 
 %% check results
 %bstart
-j = 4;
+j = 3;
 
 % plot(fset, Mlows(:,j),'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5) %Cups(:, ploti)
 % ylim([0 1])
@@ -151,20 +153,21 @@ j = 4;
 % hold off
 
 fset = fset2;
-plot(fset, Clows(:,j),'Color', Ccol, "LineStyle","-", 'LineWidth', 2.5) %Cups(:, ploti)
+plot(fset, Mlows(:,j),'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5) %Cups(:, ploti)
 ylim([0 1])
+%xlim([0.05 0.25])
 hold on
-plot(fset, Cups(:,j),'Color', Ccol, "LineStyle","-", 'LineWidth', 2.5)
-plot(fset, Cmids(:,j),'Color', Ccol, "LineStyle","--", 'LineWidth', 2.5) % unstable
+plot(fset, Mups(:,j),'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5)
+plot(fset, Mmids(:,j),'Color', Mcol, "LineStyle","--", 'LineWidth', 2.5) % unstable
 %plot(fset, vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):bend(j), 2), Cstars(bend(j)+1:end, 4)),'Color', Ccol, "LineStyle","--", 'LineWidth', 2.5)
 hold off
 
 %% Briggs PDE
 
 % PDE parameters
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
-taxisC = -0.5;%0; % taxis rate toward coral
+taxisC = -0.75;%0; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -215,9 +218,9 @@ b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 %fset2 = horzcat(linspace(0.05, 0.174, 20), linspace(0.175, 0.26, 100));
 
 
-fset21 = linspace(0.07, 0.142, 20);
-fsetL = linspace(0.07, 0.142, 20);
-fsetU = linspace(0.18, 0.259, 20);
+fset21 = linspace(0.07, 0.2, 20);
+fsetL = linspace(0.07, 0.2, 20);
+fsetU = linspace(0.15, 0.3, 20);
 
 % holding arrays
 Cruns = NaN(length(tset), length(xset),length(extHs),length(fset21));
@@ -238,7 +241,7 @@ for j = 1:length(extHs) % for each recruitment scenario
     % get the recruitment parameters
     phiH = extHs(j);
 
-    if j < 4
+    if j < 3
         fset21 = fsetL;
     else
         fset21 = fsetU;
@@ -269,6 +272,9 @@ for j = 1:length(extHs) % for each recruitment scenario
 end 
 
 toc % 129 seconds
+
+beep on 
+beep
 
 %% check patterns
 
@@ -319,14 +325,14 @@ fset21 = fset21B;
 Cmeans = CmeansB;
 Mmeans = MmeansB;
 
-fset1 = horzcat(linspace(0.05, 0.145, 100), linspace(0.146, 0.26, 20));
+fset1 = horzcat(linspace(0.05, 0.145, 100), linspace(0.145, 0.35, 20));
+fset2 = horzcat(linspace(0.05, 0.16, 20), linspace(0.16, 0.35, 100));
 
-fset2 = horzcat(linspace(0.05, 0.174, 20), linspace(0.175, 0.26, 100));
 
-fset21 = linspace(0.07, 0.142, 20);
-fsetL = linspace(0.07, 0.142, 20);
-fsetU = linspace(0.18, 0.259, 20);
-   
+fset21 = linspace(0.07, 0.2, 20);
+fsetL = linspace(0.07, 0.2, 20);
+fsetU = linspace(0.15, 0.3, 20);
+
 
 figure(1)
 x0=10;
@@ -368,9 +374,11 @@ lgd = legend;
 lgd.FontSize = 14;
 nexttile
 j = 2;
+fset = fset2;
+fset21 = fsetL;
 pgon = polyshape([fset(bstart(j)) fset(bstart(j)) fset(bend(j)) fset(bend(j))],[2 -1 -1 2]);
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
-title({'b) \phi_H = 0.001'}, 'FontSize',20)
+title({'b) \phi_H = 0.05'}, 'FontSize',20)
 xline([fset(bstart(j)) fset(bend(j))]) % bistability region
 xlim([fset(1), fset(end)])
 ylim([0 1])
@@ -383,9 +391,11 @@ plot(fset21, Pmeans(j,:), '.','MarkerSize',30,'Color', Pcol)
 hold off
 nexttile
 j = 3;
+fset = fset2;
+fset21 = fsetU;
 pgon = polyshape([fset(bstart(j)) fset(bstart(j)) fset(bend(j)) fset(bend(j))],[2 -1 -1 2]);
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
-title({'c) \phi_H = 0.01'}, 'FontSize',20)
+title({'c) \phi_H = 0.1'}, 'FontSize',20)
 xline([fset(bstart(j)) fset(bend(j))]) % bistability region
 xlim([fset(1), fset(end)])
 ylim([0 1])
@@ -402,7 +412,7 @@ fset = fset2;
 fset21 = fsetU;
 pgon = polyshape([fset(bstart(j)) fset(bstart(j)) fset(bend(j)) fset(bend(j))],[2 -1 -1 2]);
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
-title('d) \phi_H = 0.1', 'FontSize',20)
+title('d) \phi_H = 0.15', 'FontSize',20)
 xline([fset(bstart(j)) fset(bend(j))]) % bistability region
 xlim([fset(1), fset(end)])
 ylim([0 1])
@@ -441,6 +451,8 @@ plot(fset21, Pmeans(j,:), '.','MarkerSize',30,'Color', Pcol)
 hold off
 nexttile
 j = 2;
+fset = fset2;
+fset21 = fsetL;
 pgon = polyshape([fset(bstart(j)) fset(bstart(j)) fset(bend(j)) fset(bend(j))],[2 -1 -1 2]);
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 xline([fset(bstart(j)) fset(bend(j))]) % bistability region
@@ -455,6 +467,8 @@ plot(fset21, Pmeans(j,:), '.','MarkerSize',30,'Color', Pcol)
 hold off
 nexttile
 j = 3;
+fset = fset2;
+fset21 = fsetU;
 pgon = polyshape([fset(bstart(j)) fset(bstart(j)) fset(bend(j)) fset(bend(j))],[2 -1 -1 2]);
 plot(pgon,'FaceColor','black','FaceAlpha',0.025)
 xline([fset(bstart(j)) fset(bend(j))]) % bistability region
