@@ -29,11 +29,12 @@ phiM = 0.01;
 % herbivore parameters
 rH = 0.2;%0.1; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
-f = 0.08; % herbivore fishing pressure
+f = 0; % herbivore fishing pressure
+phiH = 0.05; % external recruitment
 
 % calculate get the tipping point more precisely
 % set of fishing values
-fset2 = linspace(0.11, 0.115, 50);
+fset2 = linspace(0.165, 0.169, 50);
 
 % holding vector of eq values
 Cstars2 = NaN(length(fset2), 4);
@@ -45,7 +46,7 @@ for i = 1:length(fset2)%for each element of gset
     % solve the equations
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
-    eq3i = rH*H-dH*H*H-fi*H ==0; %H
+    eq3i = phiH + rH*H-dH*H*H-fi*H ==0; %H
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real
@@ -62,7 +63,7 @@ bstart2 = find(isnan(Cstars2(:, 3))==0, 1, 'first' );% start of bistability regi
 %% get the upper boundary of bistability
 
 % set of fishing values
-fset3 = linspace(0.12, 0.125, 50);
+fset3 = linspace(0.185, 0.189, 50);
 
 % holding vector of eq values
 Cstars3 = NaN(length(fset3), 4);
@@ -74,7 +75,7 @@ for i = 1:length(fset3)%for each element of gset
     % solve the equations
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
-    eq3i = rH*H-dH*H*H-fi*H ==0; %H
+    eq3i = phiH + rH*H-dH*H*H-fi*H ==0; %H
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real
@@ -95,9 +96,9 @@ fup = fset3(bend3); % upper boundary of bistability
 %% PDE parameter set up
 
 % PDE parameters
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
-taxisC = -0.5; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -153,27 +154,29 @@ b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
 
 % taxis and diffusion sets
-txset = linspace(0, 1, 9);
-diffHset = linspace(0.05, 1, 9); % don't go lower than 0.05 bc that's the diff values for C and M
+%txset = linspace(0, 1, 9);
+%diffHset = linspace(0.05, 1, 9); % don't go lower than 0.05 bc that's the diff values for C and M
 
 
 errortol = 0.0005; % error tolerance for binary search algorithm
 
 pkN = 2; % number of peaks (in M or C) needed to count as patterns
 
-ftest1 = fset2(bstart2)-0.001*fset2(bstart2); % for initial test of patterns
+ftest1 = fset2(bstart2)-0.01*fset2(bstart2); % for initial test of patterns
 
 % set of initial conditions
 parset2 = [round(length(xset)/2), round(length(xset)/64)];
 
 % set of fishing pressures in the region of bistability
-birange = flip(ftest1:0.0002:fset3(bend3));
+%birange = flip(ftest1:0.0002:fset3(bend3));
 
 
 %% tests
 
-txset2 = [-0.6428, -3.8589]*1.5;%*1.05;
-diffHset2 = [1.1556, 8.8944]; 
+%txset2 = [-0.6428, -3.8589]*1.75;%*1.05;
+txset2 = [-1.45, -7];%*1.05;
+%diffHset2 = [1.1556, 6.6833]; 
+diffHset2 = [1.2, 6.75]; 
 
 C0widths = round(length(xset)/64);  % step widths
 initC = stepfun(C0widths, xset); 
@@ -202,7 +205,7 @@ for j = 1:length(txset2) % for each recruitment scenario
     ftest = ftest1;
 
      % run PDE
-     [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record full results
     Cruns(:, :,j, i) = solij(:,:,2);
@@ -259,7 +262,7 @@ hold off
 
 % takes a while to fully equilibrate so increase t
 
-t_end = 3*50000;
+t_end = 5*50000;
 tset = linspace(0,t_end,2*2500); 
 
 
@@ -290,7 +293,7 @@ for j = 1:length(txset2) % for each recruitment scenario
     ftest = ftest1;
 
      % run PDE
-     [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record full results
     Cruns(:, :,j, i) = solij(:,:,2);
@@ -364,11 +367,11 @@ parset2 = [round(length(xset)/2), round(length(xset)/64)];
 % binary search algorithm 
 
 % reset defaults
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates 
-taxisC = -0.5;%0; % taxis rate toward coral
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates 
+taxisC = -0.75;%0; % taxis rate toward coral
 
 
-ftest = fset2(bstart2)-0.005*fset2(bstart2);
+ftest = fset2(bstart2)-0.01*fset2(bstart2);
 
 %diffHset3 = linspace(0.05, 1.5, 10);
 
@@ -415,7 +418,7 @@ while abs(txend-txstart) >= errortol
     %taxisC
    
     % run the pde with this level of taxis
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record peak metrics
      Cvalsijk = solij(end, :, 2);
@@ -464,7 +467,7 @@ flow = 0.1111; % lower tipping point (calculated in txdiff12)
 fup = 0.1229; % upper tipping point
 
 %fref = fset2(bstart2)-0.005*fset2(bstart2);
-fref = (flow+0.000022449)-0.005*(flow+0.000022449);
+%fref = (flow+0.000022449)-0.005*(flow+0.000022449);
 
 C1 = [0.0118    0.6588    0.6588];
 C2 = [0.1412    0.0824    0.9294];
@@ -473,8 +476,11 @@ C2 = [0.1412    0.0824    0.9294];
 diffHset3 = linspace(0.05, 10, 10);
 
 % test points
-txset2 = [-0.6428, -3.8589]*1.5;
-diffHset2 = [1.1556, 8.8944]; 
+% txset2 = [-0.6428, -3.8589]*1.75;
+% diffHset2 = [1.1556, 7.7889]; 
+
+txset2 = [-1.45, -7];%*1.05;
+diffHset2 = [1.2, 6.75]; 
 
 
 
