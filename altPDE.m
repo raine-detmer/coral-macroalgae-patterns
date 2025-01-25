@@ -3,7 +3,7 @@
 
 
 function[sol] = altPDE(r,a,gamma,gz, rH, dH, f,h, d,alpha, beta, diff,taxisM,taxisC, taxisT, diric, ...
-    x,t,initC,Clow, Chigh, Mlow, Mhigh, rnsize, ampC0, ampM0, period0,icchoice)
+    x,t,initC,Clow, Chigh, Mlow, Mhigh, rnsize, ampC0, ampM0, period0,icchoice, phiH)
 
 % Find solution by simulating with PDE solver
 sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
@@ -23,13 +23,14 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
         % M with van de Leemput grazing formulation:
         M = a*y(1)*y(2)-gz*y(3)*y(1)/(gz*h*y(1)+1)+gamma*y(1)*(1-y(1)-y(2)) + alpha*(1-y(1)-y(2)); % macroalgae
         C = r*(1-y(1)-y(2))*y(2)-d*y(2)-a*y(1)*y(2) + beta*(1-y(1)-y(2)); % coral
-        H = rH*y(3)-dH*y(3)*y(3)-f*y(3); % herbivores
+        H = phiH + rH*y(3)-dH*y(3)*y(3)-f*y(3); % herbivores
         %H = rH*y(3)*(1-y(3)/k); % herbivores
         s = [M,C,H]';
     end
 %Initial conditions
     function [y0] = pdeic(xi)
-        k = (rH-f)/dH; % initial herbivore abundance at each location
+        %k = (rH-f)/dH; % initial herbivore abundance at each location
+        k = ((rH-f) + sqrt((rH-f)^2 + 4*dH*phiH))/(2*dH);
         
         % low coral
         if icchoice == 1
