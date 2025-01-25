@@ -25,12 +25,13 @@ phiM = 0.01;
 % herbivore parameters
 rH = 0.2;%0.1; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
-f = 0.08; % herbivore fishing pressure
+f = 0; % herbivore fishing pressure
+phiH = 0.05; % external recruitment
 
 
 % first get the tipping point more precisely
 % set of fishing values
-fset2 = linspace(0.11, 0.115, 50);
+fset2 = linspace(0.165, 0.169, 50);
 
 % holding vector of eq values
 Cstars2 = NaN(length(fset2), 4);
@@ -41,7 +42,7 @@ for i = 1:length(fset2)%for each element of gset
 
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
-    eq3i = rH*H-dH*H*H-fi*H ==0; %H
+    eq3i = phiH + rH*H-dH*H*H-fi*H ==0; %H
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real
@@ -58,9 +59,9 @@ bstart2 = find(isnan(Cstars2(:, 3))==0, 1, 'first' );% start of bistability regi
 %% PDE set up
 
 % PDE parameters
-diffs = [0.05,0.05,0.2, 0]; % diffusion rates of MI, C, H, and Mv
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates of MI, C, H, and Mv
 taxisM = 0; 
-taxisC = -0.5; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -108,9 +109,11 @@ b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 %% vary taxis just past tipping point and record peak metrics
 
 % parameter set up
-ftest = fset2(bstart2)-0.005*fset2(bstart2);
+%ftest = fset2(bstart2)-0.005*fset2(bstart2);
+ftest = fset2(bstart2)-0.01*fset2(bstart2);
 
-txset2 = linspace(0, 1, 20);
+% txset2 = linspace(0, 1, 20);
+txset2 = linspace(0, 1.25, 20);
 
 parset = txset2; % parameter set 
 
@@ -147,7 +150,7 @@ for k = 1:length(parset) % for each step width
    for i = 1:1
 
      % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     
     % record output
@@ -198,11 +201,13 @@ pksumm1 = pksumm;
 
 %% vary diffusion just past tipping point (for recording peak metrics)
 
-taxisC = -0.5;
+taxisC = -0.75;
 
-ftest = fset2(bstart2)-0.005*fset2(bstart2);
+%ftest = fset2(bstart2)-0.005*fset2(bstart2);
+ftest = fset2(bstart2)-0.01*fset2(bstart2);
 
-diffHset2 = linspace(0.1, 1.4, 25);
+%diffHset2 = linspace(0.1, 1.4, 25);
+diffHset2 = linspace(0.1, 1.25, 25);
 
 parset = diffHset2; % parameter set 
 
@@ -237,7 +242,7 @@ for k = 1:length(parset) % for each step width
    for i = 1:1
 
       % run PDE
-    [solij] = BriggsHrPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice); 
+    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record output
     Cruns(1, :,i, k, z) = solij(end,:,2);
@@ -275,6 +280,9 @@ end
 
 toc % took 184 seconds
 
+beep on 
+beep
+
 %% save results
 Cruns2 = Cruns;
 Mruns2 = Mruns;
@@ -296,11 +304,12 @@ syms Mi C H Mv
 warning('off','symbolic:numeric:NumericalInstability')
 
     % get the eqns
-    fi = fset2(bstart2)-0.005*fset2(bstart2);
+    %fi = fset2(bstart2)-0.005*fset2(bstart2);
+    fi = fset2(bstart2)-0.01*fset2(bstart2);
 
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
-    eq3i = rH*H-dH*H*H-fi*H ==0; %H
+    eq3i = phiH + rH*H-dH*H*H-fi*H ==0; %H
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real
@@ -309,22 +318,22 @@ warning('off','symbolic:numeric:NumericalInstability')
    % Mstars(1:length(soli.Mi)) = sort(soli.Mi + soli.Mv);
 
    Cref = soli.C;
-   Cref = Cref(2);
+   %Cref = Cref(2);
 %% plot patch characteristics together
 % plot the taxis and diffusion columns on the same plot
 
-txset2 = linspace(0, 1, 20);
-diffHset2 = linspace(0.1, 1.4, 25);
+% txset2 = linspace(0, 1, 20);
+% diffHset2 = linspace(0.1, 1.4, 25);
 
 %uisetcolor
 
 C1 = [0.0118    0.6588    0.6588];
 C2 = [0.1412    0.0824    0.9294];
 
-Cref = 0.7972676185331950869975426238645; 
+%Cref = 0.7972676185331950869975426238645; 
 
-pksumm = pksumm1;
-Cmeans = Cmeans1;
+pksummp = pksumm1;
+Cmeansp = Cmeans1;
 
 % clear gcf
 % clear gca
@@ -341,43 +350,43 @@ t.TileIndexing = 'columnmajor'; % default is rowmajor
 t.TileSpacing = 'compact';
 nexttile
 % start with patch density
-plot(txset2, squeeze(pksumm(5,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(5,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
 xlim([min(txset2) max(txset2)])
-ylim([0 0.14])
+ylim([0 0.15])
 ylabel({'Coral patch';'density'},'FontSize',22)
 hold on 
-plot(txset2, squeeze(pksumm(5,1,1,:,2)),'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(5,1,1,:,2)),'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
 hold off
 
 nexttile
 % now patch widths
-plot(txset2, squeeze(pksumm(2,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(2,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
 xlim([min(txset2) max(txset2)])
 ylim([0 25])
 ylabel({'Coral patch';'width'},'FontSize',22)
 hold on 
-plot(txset2, squeeze(pksumm(2,2,1,:,1)),'Color',C1,"LineStyle","none",'Marker','.', 'LineWidth', 2.5)
-plot(txset2, squeeze(pksumm(2,3,1,:,1)),'Color',C1,"LineStyle",":", 'LineWidth', 2.5)
-plot(txset2, squeeze(pksumm(2,1,1,:,2)),'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
-plot(txset2, squeeze(pksumm(2,2,1,:,2)),'Color',C2,"LineStyle","none",'Marker','.','LineWidth', 2.5)
-plot(txset2, squeeze(pksumm(2,3,1,:,2)),'Color',C2,"LineStyle",":", 'LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(2,2,1,:,1)),'Color',C1,"LineStyle","none",'Marker','.', 'LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(2,3,1,:,1)),'Color',C1,"LineStyle",":", 'LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(2,1,1,:,2)),'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(2,2,1,:,2)),'Color',C2,"LineStyle","none",'Marker','.','LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(2,3,1,:,2)),'Color',C2,"LineStyle",":", 'LineWidth', 2.5)
 hold off
 nexttile
 % now patch height (max coral cover)
-plot(txset2, squeeze(pksumm(4,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(4,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
 xlim([min(txset2) max(txset2)])
 ylim([0 1])
 ylabel({'Max. coral';'cover in patch'},'FontSize',22)
 hold on 
-plot(txset2, squeeze(pksumm(4,2,1,:,1)),'Color',C1,"LineStyle","none",'Marker','.', 'LineWidth', 2.5)
-plot(txset2, squeeze(pksumm(4,3,1,:,1)),'Color',C1,"LineStyle",":", 'LineWidth', 2.5)
-plot(txset2, squeeze(pksumm(4,1,1,:,2)),'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
-plot(txset2, squeeze(pksumm(4,2,1,:,2)),'Color',C2,"LineStyle","none",'Marker','.','LineWidth', 2.5)
-plot(txset2, squeeze(pksumm(4,3,1,:,2)),'Color',C2,"LineStyle",":", 'LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(4,2,1,:,1)),'Color',C1,"LineStyle","none",'Marker','.', 'LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(4,3,1,:,1)),'Color',C1,"LineStyle",":", 'LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(4,1,1,:,2)),'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(4,2,1,:,2)),'Color',C2,"LineStyle","none",'Marker','.','LineWidth', 2.5)
+plot(txset2, squeeze(pksummp(4,3,1,:,2)),'Color',C2,"LineStyle",":", 'LineWidth', 2.5)
 hold off
 nexttile
 % now mean coral cover
-plot(txset2, Cmeans(1,:,1), 'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
+plot(txset2, Cmeansp(1,:,1), 'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
 xlim([min(txset2) max(txset2)])
 yline(double(Cref), 'Linewidth',1.5)
 text(0.3, 0.85,'Nonspatial equilibrium','FontSize',14)
@@ -385,56 +394,56 @@ ylim([0 1])
 xlabel('Taxis towards coral','FontSize',22)
 ylabel({'Mean';'Coral cover'},'FontSize',22)
 hold on 
-plot(txset2, Cmeans(1,:,2), 'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
+plot(txset2, Cmeansp(1,:,2), 'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
 hold off
 
 % diffusion
 nexttile
-pksumm = pksumm2;
-Cmeans = Cmeans2;
+pksummp = pksumm2;
+Cmeansp = Cmeans2;
 % start with patch density
-plot(diffHset2, squeeze(pksumm(5,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(5,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
 xlim([min(diffHset2) max(diffHset2)])
-ylim([0 0.14])
+ylim([0 0.15])
 hold on 
-plot(diffHset2, squeeze(pksumm(5,1,1,:,2)),'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(5,1,1,:,2)),'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
 hold off
 lgd = legend('1/2','1/64', 'Location','northeast');
 title(lgd,{'Initial patch width';'(fraction total space)'})
 lgd.FontSize = 9;
 nexttile
 % now patch widths
-plot(diffHset2, squeeze(pksumm(2,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(2,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
 xlim([min(diffHset2) max(diffHset2)])
 ylim([0 25])
 hold on 
-plot(diffHset2, squeeze(pksumm(2,2,1,:,1)),'Color',C1,"LineStyle","none",'Marker','.', 'LineWidth', 2.5)
-plot(diffHset2, squeeze(pksumm(2,3,1,:,1)),'Color',C1,"LineStyle",":", 'LineWidth', 2.5)
-plot(diffHset2, squeeze(pksumm(2,1,1,:,2)),'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
-plot(diffHset2, squeeze(pksumm(2,2,1,:,2)),'Color',C2,"LineStyle","none",'Marker','.','LineWidth', 2.5)
-plot(diffHset2, squeeze(pksumm(2,3,1,:,2)),'Color',C2,"LineStyle",":", 'LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(2,2,1,:,1)),'Color',C1,"LineStyle","none",'Marker','.', 'LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(2,3,1,:,1)),'Color',C1,"LineStyle",":", 'LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(2,1,1,:,2)),'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(2,2,1,:,2)),'Color',C2,"LineStyle","none",'Marker','.','LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(2,3,1,:,2)),'Color',C2,"LineStyle",":", 'LineWidth', 2.5)
 hold off
 nexttile
 % now patch height (max coral cover)
-plot(diffHset2, squeeze(pksumm(4,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(4,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
 xlim([min(diffHset2) max(diffHset2)])
 ylim([0 1])
 hold on 
-plot(diffHset2, squeeze(pksumm(4,2,1,:,1)),'Color',C1,"LineStyle","none",'Marker','.', 'LineWidth', 2.5)
-plot(diffHset2, squeeze(pksumm(4,3,1,:,1)),'Color',C1,"LineStyle",":", 'LineWidth', 2.5)
-plot(diffHset2, squeeze(pksumm(4,1,1,:,2)),'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
-plot(diffHset2, squeeze(pksumm(4,2,1,:,2)),'Color',C2,"LineStyle","none",'Marker','.','LineWidth', 2.5)
-plot(diffHset2, squeeze(pksumm(4,3,1,:,2)),'Color',C2,"LineStyle",":", 'LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(4,2,1,:,1)),'Color',C1,"LineStyle","none",'Marker','.', 'LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(4,3,1,:,1)),'Color',C1,"LineStyle",":", 'LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(4,1,1,:,2)),'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(4,2,1,:,2)),'Color',C2,"LineStyle","none",'Marker','.','LineWidth', 2.5)
+plot(diffHset2, squeeze(pksummp(4,3,1,:,2)),'Color',C2,"LineStyle",":", 'LineWidth', 2.5)
 hold off
 nexttile
 % now mean coral cover
-plot(diffHset2, Cmeans(1,:,1), 'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
+plot(diffHset2, Cmeansp(1,:,1), 'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
 xlim([min(diffHset2) max(diffHset2)])
 ylim([0 1])
 yline(double(Cref), 'Linewidth',1.5)
 xlabel('Herbivore diffusion rate','FontSize',22)
 hold on 
-plot(diffHset2, Cmeans(1,:,2), 'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
+plot(diffHset2, Cmeansp(1,:,2), 'Color',C2,"LineStyle","-", 'LineWidth', 2.5)
 hold off
 
 
