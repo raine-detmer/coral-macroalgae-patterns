@@ -362,7 +362,7 @@ nexttile
 % now patch widths
 plot(txset2, squeeze(pksummp(2,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
 xlim([min(txset2) max(txset2)])
-ylim([0 25])
+ylim([0 20])
 ylabel({'Coral patch';'width'},'FontSize',22)
 hold on 
 plot(txset2, squeeze(pksummp(2,2,1,:,1)),'Color',C1,"LineStyle","none",'Marker','.', 'LineWidth', 2.5)
@@ -415,7 +415,7 @@ nexttile
 % now patch widths
 plot(diffHset2, squeeze(pksummp(2,1,1,:,1)),'Color',C1,"LineStyle","-", 'LineWidth', 2.5)
 xlim([min(diffHset2) max(diffHset2)])
-ylim([0 25])
+ylim([0 20])
 hold on 
 plot(diffHset2, squeeze(pksummp(2,2,1,:,1)),'Color',C1,"LineStyle","none",'Marker','.', 'LineWidth', 2.5)
 plot(diffHset2, squeeze(pksummp(2,3,1,:,1)),'Color',C1,"LineStyle",":", 'LineWidth', 2.5)
