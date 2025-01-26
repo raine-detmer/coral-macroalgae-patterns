@@ -75,10 +75,10 @@ finitLD = [0.167, 0.168];
 % 10% increase
 % phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di,rH, dH, phiH
 finitLi = [0.168, 0.169; 0.171, 0.172; 0.162, 0.163; 0.156, 0.157; 0.165, 0.166; 0.166, 0.167;
-   0.163, 0.164; 0.167, 0.168; 0.169, 0.17; 0.165, 0.166; 0.179, 0.18; 0.187, 0.188; 0.158, 0.159; 0.181, 0.186]; 
+   0.163, 0.164; 0.167, 0.168; 0.169, 0.17; 0.165, 0.166; 0.179, 0.18; 0.187, 0.188; 0.158, 0.159; 0.17, 0.175]; 
 % 10% decrease
 finitLd= [0.165, 0.166; 0.163, 0.164; 0.172, 0.173; 0.179, 0.18; 0.169, 0.17; 0.167, 0.168;
-    0.171, 0.172; 0.167, 0.168; 0.165, 0.166; 0.169, 0.17; 0.154, 0.155; 0.147, 0.148; 0.176, 0.177; 0.141, 0.146]; 
+    0.171, 0.172; 0.167, 0.168; 0.165, 0.166; 0.169, 0.17; 0.154, 0.155; 0.147, 0.148; 0.176, 0.177; 0.16, 0.165]; 
 
 
 % default parameters
@@ -181,8 +181,8 @@ ftest = Dlowtp(1);
 
 
 tic
-%for i = 1:length(pardef)
-    for i = 14
+for i = 1:length(pardef)
+   % for i = 14
 
 
     % test without phiC (1) and phiM (6)
@@ -239,12 +239,14 @@ end
 
 toc % took 365 seconds (about 6min)
 
+
+
 %% save results
 save('code output/FigS9.mat','Mlowtp', 'flowtp')
 
 
 %% load results
-%load('code output/FigS9.mat','Clowtp', 'Cuptp', 'Mlowtp', 'Muptp')
+%load('code output/FigS9.mat','Mlowtp', 'flowtp')
 
 
 
