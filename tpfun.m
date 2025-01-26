@@ -60,7 +60,7 @@ bstart = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 % store the fishing pressure at the tipping point and the equilibrium M and
 % C covers just before the tipping point
 %flow = fset(bstart);
-% or store the fishing pressure just before the tipping point
+% store the fishing pressure just before the tipping point
 flow = fset(bstart-1);
 %Ceq = Cstars(bstart-1, 2);
 Meq = Mstars(bstart-1, 1);
