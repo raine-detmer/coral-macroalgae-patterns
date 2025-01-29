@@ -271,27 +271,26 @@ save('code output/FigS20.mat','ftps','flims1')
 
 %% plot results
 
+load('code output/FigS20.mat','ftps','flims1')
+
 % width of bistability region
 bistab = ftps(2, :)-ftps(1, :); 
 
-% extent of patterns below lower tipping point as a fraction of the width
-% of the region of bistability
-% first level of taxis
-fprop1 = (ftps(1, :)-flims1(:,:,1))./bistab;
-fprop2 = (ftps(1, :)-flims1(:,:,2))./bistab;
-fprop3 = (ftps(1, :)-flims1(:,:,3))./bistab;
+% extent of patterns below lower tipping point
+fprop1 = (ftps(1, :)-flims1(:,:,1));
+fprop2 = (ftps(1, :)-flims1(:,:,2));
+fprop3 = (ftps(1, :)-flims1(:,:,3));
 
 Mcol = [0.4667 0.6745 0.1882];
+phiHset = linspace(0, 0.2, 10);
 
 figure(1)
 %plot(phiHset, fprop1, 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
 plot(phiHset, horzcat(fprop1(1:6), repelem(0, 4)), 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
-xlabel('Rate of external herbivore recruitment (\phi_H)','FontSize',22) % t for shared label
-%ylabel({'Extent of spatial patterns beyond tipping point'; '(prop. to bistability range)'},'FontSize',22)
-ylabel({'Extent of spatial patterns beyond'; 'tipping point (prop. of bistability range)'},'FontSize',22)
-%ylabel({'Range of fishing pressures with patterns'; '(prop. to range of bistability)'},'FontSize',22)
+xlabel('Rate of external herbivore recruitment (\phi_H)','FontSize',20) % t for shared label
+ylabel({'Extent of Busse balloon'},'FontSize',20)
 xlim([min(phiHset), max(phiHset)])
-ylim([0, max(horzcat(fprop1, fprop2, fprop3))])
+ylim([0, 1.15*max(horzcat(fprop1, fprop2, fprop3))])
 hold on
 %plot(phiHset(7:10), repelem(0, 4), 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
 plot(phiHset, fprop2, 'Col', Mcol, "LineStyle","--", 'LineWidth', 2.5)
@@ -299,6 +298,29 @@ plot(phiHset, fprop3, 'Col', Mcol, "LineStyle",":", 'LineWidth', 2.5)
 hold off
 lgd = legend('-0.5', '-0.75', '-1', 'location', 'northeast', 'FontSize',14);
 title(lgd,{'Taxis towards coral'})
+
+
+% % extent of patterns below lower tipping point as a fraction of the width
+% % of the region of bistability
+% fprop1 = (ftps(1, :)-flims1(:,:,1))./bistab;
+% fprop2 = (ftps(1, :)-flims1(:,:,2))./bistab;
+% fprop3 = (ftps(1, :)-flims1(:,:,3))./bistab;
+
+% %plot(phiHset, fprop1, 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
+% plot(phiHset, horzcat(fprop1(1:6), repelem(0, 4)), 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
+% xlabel('Rate of external herbivore recruitment (\phi_H)','FontSize',20) % t for shared label
+% %ylabel({'Extent of spatial patterns beyond'; 'tipping point (prop. of bistability range)'},'FontSize',20)
+% ylabel({'Busse balloon extent'; '(relative to region of bistability)'},'FontSize',20)
+% %ylabel({'Range of fishing pressures with patterns'; '(prop. to range of bistability)'},'FontSize',22)
+% xlim([min(phiHset), max(phiHset)])
+% ylim([0, max(horzcat(fprop1, fprop2, fprop3))])
+% hold on
+% %plot(phiHset(7:10), repelem(0, 4), 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
+% plot(phiHset, fprop2, 'Col', Mcol, "LineStyle","--", 'LineWidth', 2.5)
+% plot(phiHset, fprop3, 'Col', Mcol, "LineStyle",":", 'LineWidth', 2.5)
+% hold off
+% lgd = legend('-0.5', '-0.75', '-1', 'location', 'northeast', 'FontSize',14);
+% title(lgd,{'Taxis towards coral'})
 
 %% check simulations
 
