@@ -276,19 +276,19 @@ load('code output/FigS20.mat','ftps','flims1')
 % width of bistability region
 bistab = ftps(2, :)-ftps(1, :); 
 
-% extent of patterns below lower tipping point
-fprop1 = (ftps(1, :)-flims1(:,:,1));
-fprop2 = (ftps(1, :)-flims1(:,:,2));
-fprop3 = (ftps(1, :)-flims1(:,:,3));
-
 Mcol = [0.4667 0.6745 0.1882];
 phiHset = linspace(0, 0.2, 10);
+
+% busse balloon as percent increase in region of bistability
+fprop1 = (ftps(2, :)-flims1(:,:,1) - bistab)./bistab*100;
+fprop2 = (ftps(2, :)-flims1(:,:,2) - bistab)./bistab*100;
+fprop3 = (ftps(2, :)-flims1(:,:,3) - bistab)./bistab*100;
 
 figure(1)
 %plot(phiHset, fprop1, 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
 plot(phiHset, horzcat(fprop1(1:6), repelem(0, 4)), 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
 xlabel('Rate of external herbivore recruitment (\phi_H)','FontSize',20) % t for shared label
-ylabel({'Extent of Busse balloon'},'FontSize',20)
+ylabel({'% increase in range of'; 'macroalgal persistence'},'FontSize',20)
 xlim([min(phiHset), max(phiHset)])
 ylim([0, 1.15*max(horzcat(fprop1, fprop2, fprop3))])
 hold on
@@ -298,6 +298,27 @@ plot(phiHset, fprop3, 'Col', Mcol, "LineStyle",":", 'LineWidth', 2.5)
 hold off
 lgd = legend('-0.5', '-0.75', '-1', 'location', 'northeast', 'FontSize',14);
 title(lgd,{'Taxis towards coral'})
+
+
+% % extent of patterns below lower tipping point
+% fprop1 = (ftps(1, :)-flims1(:,:,1));
+% fprop2 = (ftps(1, :)-flims1(:,:,2));
+% fprop3 = (ftps(1, :)-flims1(:,:,3));
+% 
+% figure(1)
+% %plot(phiHset, fprop1, 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
+% plot(phiHset, horzcat(fprop1(1:6), repelem(0, 4)), 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
+% xlabel('Rate of external herbivore recruitment (\phi_H)','FontSize',20) % t for shared label
+% ylabel({'Extent of Busse balloon'},'FontSize',20)
+% xlim([min(phiHset), max(phiHset)])
+% ylim([0, 1.15*max(horzcat(fprop1, fprop2, fprop3))])
+% hold on
+% %plot(phiHset(7:10), repelem(0, 4), 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
+% plot(phiHset, fprop2, 'Col', Mcol, "LineStyle","--", 'LineWidth', 2.5)
+% plot(phiHset, fprop3, 'Col', Mcol, "LineStyle",":", 'LineWidth', 2.5)
+% hold off
+% lgd = legend('-0.5', '-0.75', '-1', 'location', 'northeast', 'FontSize',14);
+% title(lgd,{'Taxis towards coral'})
 
 
 % % extent of patterns below lower tipping point as a fraction of the width
