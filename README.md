@@ -5,19 +5,29 @@ Model analyses:
 The .m scripts labeled "FigX" or "FigSX" are named for the figures they create and contain all code for simulating and plotting the results shown in those figures. For example, running the “Fig1FigS1.m” script will make Figure 1 and Supplemental Figure 1. "Rev" scripts make figures used only for responses to reviewers. The "code output" folder contains the stored outputs of simulations used to make the figures (each labeled for the figure to which it corresponds; for example, "Fig2.mat" contains the outputs from the simulations run in "Fig2.m").
 
 The "Briggs___.m" scripts contain the functions for PDE models that each use the Briggs et al. 2018 model to describe local benthic dynamics:
+
 • "BriggsHrPDEextH.m": contains the function for running the PDE model analyzed in the main text (i.e., the version with dynamic herbivores and external herbivore recruitment)
+
 • "Briggs2HrPDE.m": contains the function for running the version of the PDE model with two herbivore populations
+
 • "BriggsHPDE.m": contains the function for running the version of the PDE model with no herbivore dynamics
+
 • "BriggsHrPDEHIC.m": contains the function for running the version of the PDE model with step-wise (rather than uniform) initial herbivore distributions
+
 • "BriggsHrPDEStoch.m": contains the function for running the version of the PDE model with stochastic external recruitment
 
 The "altPDE.m" and "MumbyHPDE.m" scripts contain the functions for running PDE models based on two alternative models of local benthic dynamics. The "altPDE.m" function uses a model based on the model published by van de Leemput et al. (2016), while the "MumbyHPDE.m" function uses the original Mumby et al. (2007) model.   
 
 The functions for processing model output are listed below:
+
 • "peakfun.m": calculates metrics describing the spatial patterns (e.g., peak widths, heights, wavelengths)
+
 • "peakfun2.m": calculates the maximum number of peaks in a given spatial pattern
+
 • "stepfun.m": function for generating step-wise initial conditions
+
 • "tpfun.m": function for calculating the lower tipping point (boundary of the region of bistability) for the Briggs et al. (2018) model as a function of model parameters
+
 • "tpfunExtH.m": function for calculating the lower tipping point (boundary of the region of bistability) for the Briggs et al. (2018) model as a function of external herbivore recruitment rate
 
 All model simulations were performed in Matlab R2023b. 
