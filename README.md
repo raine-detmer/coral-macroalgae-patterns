@@ -16,7 +16,7 @@ The "Briggs___.m" scripts contain the functions for PDE models that each use the
 
 • "BriggsHrPDEStoch.m": contains the function for running the version of the PDE model with stochastic external recruitment
 
-The "altPDE.m" and "MumbyHPDE.m" scripts contain the functions for running PDE models based on two alternative models of local benthic dynamics. The "altPDE.m" function uses a model based on the model published by van de Leemput et al. (2016), while the "MumbyHPDE.m" function uses the original Mumby et al. (2007) model.   
+The "altPDE.m" and "MumbyHPDE.m" scripts contain the functions for running PDE models based on two alternative models of local benthic dynamics. The "altPDE.m" function uses a model based on the model published by van de Leemput et al. 2016, while the "MumbyHPDE.m" function uses the original Mumby et al. 2007 model.   
 
 The functions for processing model output are listed below:
 
