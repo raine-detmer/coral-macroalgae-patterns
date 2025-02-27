@@ -28,7 +28,6 @@ The functions for processing model output are listed below:
 
 • "tpfun.m": function for calculating the lower tipping point (boundary of the region of bistability) for the Briggs et al. (2018) model as a function of model parameters
 
-• "tpfunExtH.m": function for calculating the lower tipping point (boundary of the region of bistability) for the Briggs et al. (2018) model as a function of external herbivore recruitment rate
 
 All model simulations were performed in Matlab R2023b. 
 
