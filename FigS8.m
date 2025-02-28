@@ -73,13 +73,13 @@ b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
 
 
-%% vary amplitude of C and M
+%% vary initial heights of C and M patches
 
 C0widths = round(length(xset)/64);
 initC = stepfun(C0widths, xset); 
 
-lowset = linspace(0,0.25, 10);
-highset = 0.5-lowset;
+lowset = linspace(0,0.25, 10); % min initial C and M cover
+highset = 0.5-lowset; % max initial C and M cover
 
 % just look at a fishing pressure in the lower part of the balloon
 fset21 = 0.15;
@@ -91,7 +91,7 @@ Mmeans = NaN(length(fset21), length(highset));
 Hmeans = NaN(length(fset21), length(highset));
 
 tic
- for j = 1:length(highset) % for each step height
+ for j = 1:length(highset) % for each patch height
 
      C0high = highset(j);
      C0low = lowset(j);
@@ -121,11 +121,11 @@ Mmeans1 = Mmeans;
 
 
 
-%% vary initial M amplitude, low or high C 
+%% vary initial M patch height with low or high C patch heights
 %REMEMBER M + C needs to be less than or equal to 1 though... so need C to
 %go between 0 and 0.5
 
-fixedset = [0.05, 0.45];
+fixedset = [0.05, 0.45]; % low vs. high C patches
 
 % record avg abundance at final timepoint for each parameter combination
 Cmeans = NaN(length(fset21), length(highset), length(fixedset));
@@ -133,12 +133,12 @@ Mmeans = NaN(length(fset21), length(highset), length(fixedset));
 Hmeans = NaN(length(fset21), length(highset), length(fixedset));
 
 tic
-for k = 1:length(fixedset) % for each step width
+for k = 1:length(fixedset) % for each coral patch height
    
      C0high = fixedset(k);
      C0low = fixedset(k);
 
- for j = 1:length(highset) % for each step height
+ for j = 1:length(highset) % for each M patch height
 
      M0high = highset(j);
      M0low = lowset(j);
@@ -167,7 +167,7 @@ Mmeans2 = Mmeans;
 
 
 
-%% vary initial C amplitude, high or low M
+%% vary initial C patch height with high or low M patch heights
 %REMEMBER M + C needs to be less than or equal to 1, so need C to
 %go between 0 and 0.5
 
@@ -179,12 +179,12 @@ Mmeans = NaN(length(fset21), length(highset), length(fixedset));
 Hmeans = NaN(length(fset21), length(highset), length(fixedset));
 
 tic
-for k = 1:length(fixedset) % for each step width
+for k = 1:length(fixedset) % for each M patch height
    
      M0high = fixedset(k);
      M0low = fixedset(k);
      
- for j = 1:length(highset) % for each step height
+ for j = 1:length(highset) % for each C patch height
 
      C0high = highset(j);
      C0low = lowset(j);

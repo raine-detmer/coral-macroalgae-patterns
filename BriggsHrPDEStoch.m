@@ -1,4 +1,4 @@
-% README: function for simulating the PDE with stochastic coral and
+% README: function for simulating the Briggs PDE model with stochastic coral and
 % macroalgal recruitment
 
 
@@ -47,15 +47,10 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
         
         %RANDOMIZED
         if icchoice == 3
-       %make initial values and magnitude of randomness function
-        % arguments
+       
         Mi0 = Mhigh-Mhigh*rand*rnsize; % initial invul macroalgal cover
         C0 = Chigh-Chigh*rand*rnsize; % initial coral cover
-        % then say remaining cover that isn't Mi or C is 50% vuln M and 50%
-        % turf
-        %y0 = [Mi0,C0,k, (1-Mi0-C0)*0.5]'; % Minv, C, H, Mvuln
-        % update: say that Mi is total macroalgae, and 95% of this is
-        % invuln
+        
         y0 = [Mi0*0.95,C0,k, Mi0*0.05]'; % Minv, C, H, Mvuln
 
         % make sure Mhigh and Chigh don't sum to greater than 1 when using
@@ -66,12 +61,10 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
        % Specific step wise distribution
         if icchoice == 4
         if ismember(xi, initC) ==1 % if xi is in initC
-            %y0 = [0.05, 0.8, k]'; % high C
-            %y0 = [Mlow, Chigh, k, 0]'; % high C
+            
             y0 = [Mlow*0.95, Chigh, k, Mlow*0.05]'; % high C
         else
-            %y0 = [0.8, 0.05, k]'; % high M
-            %y0 = [Mhigh, Clow, k, 0]'; % high M
+            
             y0 = [Mhigh*0.95, Clow, k, Mhigh*0.05]'; % high M
         end
         end
@@ -79,24 +72,12 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
         % sine wave
         if icchoice ==5
 
-            %xpos = xi;
-            %C0i = ampC0*sin(period0*xpos) + Chigh;
-            %M0i = ampM0*sin(period0*xpos-pi) + Mhigh;
 
             C0i = ampC0*sin(period0*xi) + Chigh;
             M0i = ampM0*sin(period0*xi-pi) + Mhigh;
             y0 = [M0i*0.95, C0i, k, M0i*0.05]'; % need to transpose!!
 
-            % NOTE: amp0/2 + C0high + M0high-amp0/2 (high point + low
-            % point) need to add up to <=1, so need C0high + M0high <=1
-            %global Mi00; global C00; global H00; global Mv00;
-            %C0i = C00(x==xi);
-            %M0i = Mi00(x==xi);
-            %M0v = Mv00(x==xi);
-            %H0 = k;
-
-            %y0 = [M0i, C0i, H0, M0v]'; % REMEMBER NEED TRANSPOSE (') to make this a column, could also separate with semicolons instead of commas
-
+            
         end
         
     end
@@ -121,7 +102,7 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
         end
     end
 
-% external recruitment functions
+% external recruitment functions for adding stochasticity
     function [phiC_output] = phiC_fun(xi,t, stochmatC, xstoch, tstoch)
 
     % get the timepoint in tstoch closest to the current timepoint

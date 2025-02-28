@@ -3,6 +3,19 @@
 % sensitivity of all the models to whether or not there is external
 % recruitment
 
+% can load the outputs of these simulations for plotting:
+
+load('code output/FigS10S11S16S17.mat','CupsB', 'CmidsB', 'ClowsB', 'MupsB', ...
+    'MmidsB', 'MlowsB', 'fsetB', 'bstartB', 'bendB', 'fset21B', 'CmeansB', ...
+    'MmeansB', 'CupsB2', 'CmidsB2', 'ClowsB2', 'MupsB2', ...
+    'MmidsB2', 'MlowsB2', 'fsetB2', 'bstartB2', 'bendB2', 'fset21B2', 'CmeansB2', ...
+    'MmeansB2','CupsM', 'CmidsM', 'ClowsM', 'MupsM', ...
+    'MmidsM', 'MlowsM', 'fsetM', 'bstartM', 'bendM', 'fset21M', 'CmeansM', ...
+    'MmeansM','CupsL', 'CmidsL', 'ClowsL', 'MupsL', ...
+    'MmidsL', 'MlowsL', 'fsetL', 'bstartL', 'bendL', 'fset21L', 'CmeansL', ...
+    'MmeansL')
+
+
 %% setup
 % plotting colors
 Mcol = [0.4667 0.6745 0.1882];
@@ -32,7 +45,7 @@ dC = 0.02;% default 0.05
 %phiC = 0.01; % default 0.001
 
 % herbivore parameters
-rH = 0.2;%0.1; % herbivore growth rate
+rH = 0.2; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
 f = 0; % herbivore fishing pressure
 phiH = 0.05; % external recruitment
@@ -42,7 +55,7 @@ fset = linspace(0.1, 0.22, 100);
 
 
 % holding arrays for each combination of external recruitment pars
-Cups = NaN(length(fset), 4); % 4 recruitment par combinations
+Cups = NaN(length(fset), 4); % 4 recruitment parameter combinations
 Cmids = NaN(length(fset), 4);
 Clows = NaN(length(fset), 4);
 
@@ -58,9 +71,10 @@ warning('off','symbolic:numeric:NumericalInstability')
 
 
 tic
-for j = 1:length(extCs)
+for j = 1:length(extCs) % for each element of extCs
 %for j = 4
 
+% set the recruitment parameters
     phiC = extCs(j);
     phiM = extMs(j);
 
@@ -72,9 +86,9 @@ Mstars = NaN(length(fset), 8);
 %Mistars = NaN(length(fset), 4);
 %Mvstars = NaN(length(fset), 4);
 
-for i = 1:length(fset)%for each element of gset
-    % get the eqns
-    fi = fset(i);
+for i = 1:length(fset)%for each element of fset
+    
+    fi = fset(i); % set the fishing pressure
 
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
@@ -89,19 +103,19 @@ end
 
 % process results
 
-if j==1
-% need to rearrange the eq to get smooth lines when plotting
+if j==1 % exact ordering of equilibria varies with external recruitment so need to specify vectors individually for each j
+% rearrange the eq to get smooth lines when plotting
 bend(j) = find(isnan(Cstars(:, 3))==0, 1, 'last' );% end of bistability region
 bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
 % use vertcat to concatenate vertical vectors
 % look at the Cstars to figure out how to piece these together
 % for f on x axis:
-Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:bend, 3), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
-Cmids = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:bend, 2), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:bend, 3), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
+Cmids = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:bend, 2), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 3), Mstars(bstart(j):bend(j), 2), Mstars(bend(j)+1:end, 3));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 3), Mstars(bend(j)+1:end, 1));
 % note ups and lows are from the coral's perspective still
@@ -110,11 +124,11 @@ elseif j==2
 bend(j) = find(isnan(Cstars(:, 3))==0, 1, 'last' );% end of bistability region
 bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = vertcat(Cstars(1:bend(j), 2), Cstars(bend(j)+1:end, 3));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 6)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 6)); % need to make sure the length stays the same so concatenate with NaNs
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 4), Mstars(bstart(j):bend(j), 2), Mstars(bend(j)+1:end, 5));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 3), Mstars(bend(j)+1:end, 2));
 
@@ -125,11 +139,11 @@ elseif j==3
 bend(j) = find(isnan(Cstars(:, 3))==0, 1, 'last' );% end of bistability region
 bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 2), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 2), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 2));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 4), Mstars(bstart(j):bend(j), 2), Mstars(bend(j)+1:end, 5));
 Mlows(:,j) = vertcat(Mstars(1:bstart(j)-1, 4), Mstars(bstart(j):bend(j), 3), Mstars(bend(j)+1:end, 1));
 
@@ -139,11 +153,11 @@ else
 bend(j) = find(isnan(Cstars(:, 4))==0, 1, 'last' );% end of bistability region
 bstart(j) = find(isnan(Cstars(:, 4))==0, 1, 'first' );% start of bistability region
 
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 3), Cstars(bstart(j):end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 3), Cstars(bstart(j):end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):bend(j), 3), Cstars(bend(j)+1:end, 4));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 2));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 4), Mstars(bstart(j):bend(j), 3), Mstars(bend(j)+1:end, 4));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 4), Mstars(bend(j)+1:end, 3));
 
@@ -155,7 +169,7 @@ end
 toc % about 100 seconds
 
 beep on
-beep
+beep % beep when done with simulation
 
 
 
@@ -179,12 +193,12 @@ beep
 % plot(fset, Cmids(:,j),'Color', Ccol, "LineStyle","--", 'LineWidth', 2.5) % unstable
 % hold off
 
-%% Briggs PDE
+%% Briggs PDE (local dynamics based on Briggs model)
 
 % PDE parameters
-diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates 
 taxisM = 0; 
-taxisC = -0.75;%0; % taxis rate toward coral
+taxisC = -0.75;% taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -201,7 +215,7 @@ tset = linspace(0,t_end,2*2500);
 icchoice = 4; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
 
 C0high = 0.85;
-C0low = 0.05;%0.05;
+C0low = 0.05;
 M0high = 0.85;
 M0low = 0.05;
 
@@ -209,7 +223,6 @@ M0low = 0.05;
 rnsize = 1; % magnitude of random variation (0-1)
 
 % for icchoice = 4
-%C0widths = round(length(xset)/16);  % step widths
 C0widths = round(length(xset)/64);  % step widths
 initC = stepfun(C0widths, xset); 
 
@@ -545,10 +558,8 @@ Cstars = NaN(length(fset), 8);%not sure how many pos, real eq...maybe run a sing
 % value in region of bistability to check how many solutions there were?
 Mstars = NaN(length(fset), 8);
 
-%Mistars = NaN(length(fset), 4);
-%Mvstars = NaN(length(fset), 4);
 
-for i = 1:length(fset)%for each element of gset
+for i = 1:length(fset)%for each element of fset
     % get the eqns
     fi = fset(i);
 
@@ -573,11 +584,11 @@ bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability reg
 % use vertcat to concatenate vertical vectors
 % look at the Cstars to figure out how to piece these together
 % for f on x axis:
-Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:bend, 3), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
-Cmids = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:bend, 2), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:bend, 3), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
+Cmids = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:bend, 2), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 3), Mstars(bstart(j):bend(j), 2), Mstars(bend(j)+1:end, 3));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 3), Mstars(bend(j)+1:end, 1));
 % note ups and lows are from the coral's perspective still
@@ -586,11 +597,11 @@ elseif j==2
 bend(j) = find(isnan(Cstars(:, 3))==0, 1, 'last' );% end of bistability region
 bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = vertcat(Cstars(1:bend(j), 2), Cstars(bend(j)+1:end, 3));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 6)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 6)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 4), Mstars(bstart(j):bend(j), 2), Mstars(bend(j)+1:end, 5));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 3), Mstars(bend(j)+1:end, 2));
 
@@ -601,11 +612,11 @@ elseif j==3
 bend(j) = find(isnan(Cstars(:, 3))==0, 1, 'last' );% end of bistability region
 bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 2), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 2), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 2));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 4), Mstars(bstart(j):bend(j), 2), Mstars(bend(j)+1:end, 5));
 Mlows(:,j) = vertcat(Mstars(1:bstart(j)-1, 4), Mstars(bstart(j):bend(j), 3), Mstars(bend(j)+1:end, 1));
 
@@ -615,11 +626,11 @@ else
 bend(j) = find(isnan(Cstars(:, 4))==0, 1, 'last' );% end of bistability region
 bstart(j) = find(isnan(Cstars(:, 4))==0, 1, 'first' );% start of bistability region
 
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 3), Cstars(bstart(j):end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 3), Cstars(bstart(j):end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):bend(j), 3), Cstars(bend(j)+1:end, 4));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 2));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 4), Mstars(bstart(j):bend(j), 3), Mstars(bend(j)+1:end, 4));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 4), Mstars(bend(j)+1:end, 3));
 
@@ -652,9 +663,9 @@ toc % about 106 seconds
 %% Briggs PDE
 
 % PDE parameters
-diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates
 taxisM = 0; 
-taxisC = -0.75;%0; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -671,7 +682,7 @@ tset = linspace(0,t_end,2*2500);
 icchoice = 4; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
 
 C0high = 0.85;
-C0low = 0.05;%0.05;
+C0low = 0.05;
 M0high = 0.85;
 M0low = 0.05;
 
@@ -758,7 +769,7 @@ toc % 115 seconds
 % plot(xset, Mruns(end,:,4, 8), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
 % hold off
 
-%% save all the Briggs results
+%% save all the default Briggs results
 CupsB2 = Cups;
 CmidsB2 = Cmids;
 ClowsB2 = Clows;
@@ -1005,7 +1016,7 @@ tic
 for j = 1:length(extCs)
 %for j = 4
 
-    beta = extCs(j);
+    beta = extCs(j); % note here alpha and beta are used instead of phiM and phiC
     alpha = extMs(j);
 
 % holding vector of eq values
@@ -1013,10 +1024,8 @@ Cstars = NaN(length(fset), 8);%not sure how many pos, real eq...maybe run a sing
 % value in region of bistability to check how many solutions there were?
 Mstars = NaN(length(fset), 8);
 
-%Mistars = NaN(length(fset), 4);
-%Mvstars = NaN(length(fset), 4);
 
-for i = 1:length(fset)%for each element of gset
+for i = 1:length(fset)%for each element of fset
     % get the eqns
     fi = fset(i);
 
@@ -1040,11 +1049,11 @@ bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability reg
 % use vertcat to concatenate vertical vectors
 % look at the Cstars to figure out how to piece these together
 % for f on x axis:
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = Cstars(:, 2);
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 3), Mstars(bstart(j):bend(j), 2), Mstars(bend(j)+1:end, 3));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 3), Mstars(bend(j)+1:end, 1));
 
@@ -1054,11 +1063,11 @@ elseif j==2
 bend(j) = find(isnan(Cstars(:, 3))==0, 1, 'last' );% end of bistability region
 bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = vertcat(Cstars(1:bend(j), 2), Cstars(bend(j)+1:end, 3));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bend(j), 2), Mstars(bend(j)+1:end, 3));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 3), Mstars(bend(j)+1:end, 2));
 
@@ -1068,11 +1077,11 @@ elseif j==3
 bend(j) = find(isnan(Cstars(:, 3))==0, 1, 'last' );% end of bistability region
 bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 2), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 2), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = vertcat(Cstars(1:bstart(j)-1, 3), Cstars(bstart(j):end, 2));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 3), Mstars(bstart(j):end, 2));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 3), Mstars(bend(j)+1:end, 1));
 
@@ -1082,11 +1091,11 @@ else
 bend(j) = find(isnan(Cstars(:, 4))==0, 1, 'last' );% end of bistability region
 bstart(j) = find(isnan(Cstars(:, 4))==0, 1, 'first' );% start of bistability region
 
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 3), Cstars(bstart(j):end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 3), Cstars(bstart(j):end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):bend(j), 3), Cstars(bend(j)+1:end, 4));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 2));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 4), Mstars(bstart(j):bend(j), 3), Mstars(bend(j)+1:end, 4));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 4), Mstars(bend(j)+1:end, 3));
 
@@ -1428,7 +1437,7 @@ tic
 for j = 1:length(extCs)
 %for j = 4
 
-    beta = extCs(j);
+    beta = extCs(j); % beta = phiC, alpha = phiM
     alpha = extMs(j);
 
 % holding vector of eq values
@@ -1436,12 +1445,10 @@ Cstars = NaN(length(fset), 8);%not sure how many pos, real eq...maybe run a sing
 % value in region of bistability to check how many solutions there were?
 Mstars = NaN(length(fset), 8);
 
-%Mistars = NaN(length(fset), 4);
-%Mvstars = NaN(length(fset), 4);
 
-for i = 1:length(fset)%for each element of gset
-    % get the eqns
-    fi = fset(i);
+for i = 1:length(fset)%for each element of fset
+   
+    fi = fset(i); % set the fishing pressure
 
     eq1i = a*M*C-gz*H*M/(gz*h*M + 1)+gamma*M*(1-M-C)+alpha*(1-M-C) == 0;
     eq2i = r*(1-M-C)*C-d*C-a*M*C+beta*(1-M-C) ==0;
@@ -1463,11 +1470,11 @@ bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability reg
 % use vertcat to concatenate vertical vectors
 % look at the Cstars to figure out how to piece these together
 % for f on x axis:
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = Cstars(:, 2);
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 3), Mstars(bstart(j):bend(j), 2), Mstars(bend(j)+1:end, 3));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 3), Mstars(bend(j)+1:end, 1));
 
@@ -1477,11 +1484,11 @@ elseif j==2
 bend(j) = find(isnan(Cstars(:, 3))==0, 1, 'last' );% end of bistability region
 bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = vertcat(Cstars(1:bend(j), 2), Cstars(bend(j)+1:end, 3));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs
 Mmids(:,j) = vertcat(Mstars(1:bend(j), 2), Mstars(bend(j)+1:end, 3));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 3), Mstars(bend(j)+1:end, 2));
 
@@ -1491,11 +1498,11 @@ elseif j==3
 bend(j) = find(isnan(Cstars(:, 3))==0, 1, 'last' );% end of bistability region
 bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 2), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 2), Cstars(bstart(j):end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = vertcat(Cstars(1:bstart(j)-1, 3), Cstars(bstart(j):end, 2));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 3), Mstars(bstart(j):end, 2));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 3), Mstars(bend(j)+1:end, 1));
 
@@ -1506,11 +1513,11 @@ else
 bstart(j) = find(Cstars(:,3)>0, 1, 'first')+1;
 bend(j) = find(isnan(Cstars(:, 4))==0, 1, 'last' );% end of bistability region
 
-Cups(:,j) = vertcat(repelem(Cstars(1,2), length(1:bstart(j)))',Cstars(bstart(j)+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(repelem(Cstars(1,2), length(1:bstart(j)))',Cstars(bstart(j)+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = vertcat(Cstars(1:bstart(j)-1, 5), Cstars(bstart(j):bend(j), 3), Cstars(bend(j)+1:end, 5));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 5), Cstars(bstart(j):end, 2));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 5)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 5)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 5), Mstars(bstart(j):bend(j), 3), Mstars(bend(j)+1:end, 5));
 Mlows(:,j) = vertcat(Mstars(1:bstart(j)-1, 5), Mstars(bstart(j):bend(j), 4), Mstars(bend(j)+1:end, 3));
 
@@ -1803,17 +1810,7 @@ save('code output/FigS10S11S16S17.mat','CupsB', 'CmidsB', 'ClowsB', 'MupsB', ...
     'MmidsL', 'MlowsL', 'fsetL', 'bstartL', 'bendL', 'fset21L', 'CmeansL', ...
     'MmeansL')
 
-%% load output
 
-% load('code output/FigS10S11S16S17.mat','CupsB', 'CmidsB', 'ClowsB', 'MupsB', ...
-%     'MmidsB', 'MlowsB', 'fsetB', 'bstartB', 'bendB', 'fset21B', 'CmeansB', ...
-%     'MmeansB', 'CupsB2', 'CmidsB2', 'ClowsB2', 'MupsB2', ...
-%     'MmidsB2', 'MlowsB2', 'fsetB2', 'bstartB2', 'bendB2', 'fset21B2', 'CmeansB2', ...
-%     'MmeansB2','CupsM', 'CmidsM', 'ClowsM', 'MupsM', ...
-%     'MmidsM', 'MlowsM', 'fsetM', 'bstartM', 'bendM', 'fset21M', 'CmeansM', ...
-%     'MmeansM','CupsL', 'CmidsL', 'ClowsL', 'MupsL', ...
-%     'MmidsL', 'MlowsL', 'fsetL', 'bstartL', 'bendL', 'fset21L', 'CmeansL', ...
-%     'MmeansL')
 
 
 

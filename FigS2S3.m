@@ -1,6 +1,7 @@
 % README: code for making Fig. S2 and Fig. S3
 
-% plot setup
+%% plot setup
+% colors
 Mcol = [0.4667 0.6745 0.1882];
 Ccol = [0.3020 0.7451 0.9333];
 
@@ -15,7 +16,7 @@ N = 256;
 CMmap = interp1(vec, raw, linspace(100,0, N),'pchip');
 
 
-%% single step IC
+%% single step initial conditions
 
 C0high = 0.85;
 C0low = 0.05;
@@ -48,12 +49,11 @@ phiH = 0.05;
 syms Mi C H Mv
 
 
-% set of fishing values
+% set of fishing values to iterate over
 fset = linspace(0.12, 0.2, 100);
 
-% holding vector of eq values
-Cstars = NaN(length(fset), 4);%not sure how many pos, real eq...maybe run a single 
-% value in region of bistability to check how many solutions there were?
+% holding matrices for equilibria
+Cstars = NaN(length(fset), 4);
 Mstars = NaN(length(fset), 4);
 
 Mistars = NaN(length(fset), 4);
@@ -62,10 +62,11 @@ Mvstars = NaN(length(fset), 4);
 % turn off warning
 warning('off','symbolic:numeric:NumericalInstability')
 
-for i = 1:length(fset)%for each element of gset
-    % get the eqns
-    fi = fset(i);
+for i = 1:length(fset)%for each element of fset
+  
+    fi = fset(i); % set the fishing pressure
 
+    % define the equations
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
     eq3i = phiH + rH*H-dH*H*H-fi*H ==0; %H
@@ -83,12 +84,8 @@ end
 bend = find(isnan(Cstars(:, 3))==0, 1, 'last' );% end of bistability region
 bstart = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
-% use vertcat to concatenate vertical vectors
-% look at the Cstars to figure out how to piece these together
-% for f on x axis:
-% Cups = vertcat(Cstars(1:bstart-1, 2), Cstars(bstart:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
-% Cmids = Cstars(:, 3);
-% Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 2));
+% concatenate vectors so vector for each equilibrium (2 stable and one
+% unstable) has same length as fset
 Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:bend, 3), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
 Cmids = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:bend, 2), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
 Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 1));
@@ -100,34 +97,21 @@ Mlows = vertcat(Mstars(1:bend, 3), Mstars(bend+1:end, 1));
 % note ups and lows are from the coral's perspective still
 
 
-% note this gave the following message:
-% Warning: Solution does not reach accuracy goal. Verify solution manually to determine if it is
-%satisfactory. 
-% I spot checked a few near the tipping point in Mathematica and they seem to be accurate
-
-%w =  warning('query','last') 
-%w.identifier % figure out how the warning message is
-%identified
-
-% turn it off
-%warning('off','symbolic:numeric:NumericalInstability')
-
-
 %% PDE set up
 
 % PDE parameters
 diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
 taxisM = 0; 
-taxisC = -0.75;%0; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
 
-% space
+% space parameters
 len = 400;
 xset = linspace(-len/2,len/2,800);
 
-% time
+% time parameters
 t_end = 3*50000;
 tset = linspace(0,t_end,2*2500); 
 
@@ -162,7 +146,6 @@ b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
 % initial conditions set
 initCset = NaN(5, length(xset));
-%initCset(1, :) = repelem(-9999, length(cxset)); % no high coral anywhere
 initCset(1, 1) = -9999; % no high coral anywhere
 % initCset(2, 1:200) = xset(1:200); % 200 = 25% of xset
 % initCset(3, 1:400) = xset(1:400); % 400 = 50% of xset
@@ -204,12 +187,10 @@ fset21 = linspace(0.13, 0.19, 20); % for higher bistability region
 
 %% PDE sims, different taxis values
 
-%fset21 = [0.07];
 
-%txset = [-1 -0.5 0 0.5 1];
+
 txset = [-0.75 0 0.75];
 
-%parset = [0 0.25 0.5 0.75 1]; % parameter set (% coral dominance)
 parset = [0 0.05 0.5 0.95 1]; % parameter set (% coral dominance)
 
 % holding arrays
@@ -228,15 +209,9 @@ M0runs = NaN(1, length(xset),length(fset21), length(parset), length(txset));
 H0runs = NaN(1, length(xset),length(fset21), length(parset), length(txset));
 
 
-
-% also record the average cover initial time point (for the ODE sims)
-% C0means = NaN(1, length(parset));
-% Mv0means = NaN(1, length(parset));
-% Mi0means = NaN(1, length(parset));
-% H0means = NaN(1, length(parset));
-
 tic
 for k = 1:length(parset) % for each step width
+
    
     initC = initCset(k, find(isnan(initCset(k,:))==0));
 
@@ -244,10 +219,10 @@ for k = 1:length(parset) % for each step width
 
      taxisC = txset(j);
 
-    for i = 1:length(fset21) % for each fishing pressure
-     %for i = 1 % for each fishing pressure
+    for i = 1:length(fset21) % for each element in fset21
+     
 
-        ftest = fset21(i);
+        ftest = fset21(i); % set the fishing pressure
      % run PDE
     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
@@ -265,14 +240,7 @@ for k = 1:length(parset) % for each step width
     Mmeans(i, k, j) = mean(solij(end, b1i:b2i, 1)+ solij(end,b1i:b2i,4));
     Hmeans(i, k, j) = mean(solij(end, b1i:b2i, 3));
 
-    % if i ==1 && j==1 % for the first fishing pressure
-    %  % record the spatial averages at the first timepoint
-    % C0means(k) = mean(solij(1, :, 2));
-    % Mv0means(k) = mean(solij(1,:,4));
-    % Mi0means(k) = mean(solij(1, :, 1));
-    % H0means(k) = mean(solij(1, :, 3));
-    % 
-    % end
+    
 
 
     end 
@@ -322,64 +290,55 @@ taxisC = txset(j);
  %save('code output/FigS2S3.mat','Cruns1', 'Mruns1', 'Hruns1', 'Cmeans1', ...
    % 'Mmeans1', 'Hmeans1', 'C0runs', 'M0runs', 'H0runs')
 
+%% check distributions
 
- 
+% k = 1;
+% ptx = 1;
+% pf = 14;
+% plot(xset,Cruns1(1, :, pf, k, ptx), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
+% ylim([-0.01 1.75])
+% xlabel('Location','FontSize',14) % t for shared label
+% ylabel('Abundance','FontSize',14)
+% title('0% coral dominance', 'FontSize',16)
+% ax = gca;
+% ax.TitleHorizontalAlignment = 'left';
+% hold on
+% plot(xset,Mruns1(1, :, pf, k, ptx), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
+% hold off
+% hold on
+% plot(xset,Hruns1(1, :, pf, k, ptx), 'LineWidth',2, 'Color', [0.9294 0.6941 0.1255])
+% hold off
+
+%% check for pattern equilibration
 
 
-%% check distribution
-
-k = 1;
-ptx = 1;
-pf = 14;
-plot(xset,Cruns1(1, :, pf, k, ptx), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
-ylim([-0.01 1.75])
-xlabel('Location','FontSize',14) % t for shared label
-ylabel('Abundance','FontSize',14)
-title('0% coral dominance', 'FontSize',16)
-ax = gca;
-ax.TitleHorizontalAlignment = 'left';
-hold on
-plot(xset,Mruns1(1, :, pf, k, ptx), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
-hold off
-hold on
-plot(xset,Hruns1(1, :, pf, k, ptx), 'LineWidth',2, 'Color', [0.9294 0.6941 0.1255])
-hold off
-
-%% check pattern equilibration
-
-%t_end = 3*50000;
-%tset = linspace(0,t_end,2*2500); 
-
-% t_end = 10000;
+% t_end = 4*50000;
 % tset = linspace(0,t_end,2*2500); 
-
-t_end = 4*50000;
-tset = linspace(0,t_end,2*2500); 
-
-k = 3;  
-initC = initCset(k, find(isnan(initCset(k,:))==0));
-
-j = 3;
-taxisC = txset(j);
-
- i = 15; 
-
-        ftest = fset21(i);
-     % run PDE
-    [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ...
-        ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, ...
-        C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
-
-    Ctest = solij(:,:,2);
-    Mtest = solij(:,:,1)+ solij(:,:,4);
-    Htest = solij(:,:,3);
-
-% surface plot
-figure(4)
-surf(Ctest,'FaceAlpha',1, 'EdgeColor','none')
-%colormap summer
-colormap(CMmap)
-view(0,90)
+% 
+% k = 3;  
+% initC = initCset(k, find(isnan(initCset(k,:))==0));
+% 
+% j = 3;
+% taxisC = txset(j);
+% 
+%  i = 15; 
+% 
+%         ftest = fset21(i);
+%      % run PDE
+%     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ...
+%         ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, ...
+%         C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
+% 
+%     Ctest = solij(:,:,2);
+%     Mtest = solij(:,:,1)+ solij(:,:,4);
+%     Htest = solij(:,:,3);
+% 
+% % surface plot
+% figure(4)
+% surf(Ctest,'FaceAlpha',1, 'EdgeColor','none')
+% %colormap summer
+% colormap(CMmap)
+% view(0,90)
 
 %% distribution plots
 
@@ -437,7 +396,7 @@ lg{2} = plot(nan, 'Color', Mcol, "LineStyle","--", 'LineWidth', 2.5);
 lg{3} = scatter(nan, 100, 'o','MarkerEdgeColor', Mcol, 'MarkerFaceColor', Mcol, 'MarkerFaceAlpha', 0.2, 'LineWidth', 1.25);
 lg{4} = plot(nan, '.','MarkerSize',12,'Color', Mcol);
 lg{5} = scatter(nan, 100, '^','MarkerEdgeColor', Mcol, 'MarkerFaceColor', Mcol, 'MarkerFaceAlpha', 0.2, 'LineWidth', 1.25);
-legend([lg{:}],{'ODE, stable', 'ODE, unstable','PDE means, \tau_{c} = -0.5','PDE means, \tau_{c} = 0', 'PDE means, \tau_{c} = 0.5'}, 'Location', 'southwest')
+legend([lg{:}],{'ODE, stable', 'ODE, unstable','PDE means, \tau_{c} = -0.75','PDE means, \tau_{c} = 0', 'PDE means, \tau_{c} = 0.75'}, 'Location', 'southwest')
 hold off
 legend('boxoff')
 lgd = legend;
@@ -587,7 +546,7 @@ M0low = 0.05;
 C0widths = round(length(xset)/64);  % step widths
 initC = stepfun(C0widths, xset); 
 
-txset = [-0.75 0 0.75];
+txset = [-0.75 0 0.75]; % set of taxis values
 
 % time
 t_end = 2000;
@@ -605,8 +564,8 @@ tic
 
      taxisC = txset(j);
 
-        %ftest = fset21(11); % just about at the tipping point
-        ftest = fset21(13); % 0.1679, just before tipping point 
+        
+        ftest = fset21(13); % fishing pressure = 0.1679, just before tipping point 
      % run PDE
     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
@@ -626,10 +585,8 @@ HrunsT = Hruns;
 
 %% plot results
 
-%tpset = [1, 2, 4, 8]; % timepoints to plot; year 0   30.0060   90.0180  210.0420
 
-%tpset = [10, 30, 80, 180]; 
-tpset = [10, 30, 90, 190]; 
+tpset = [10, 30, 90, 190]; % timepoints to plot
 
 figure(2)
 x0=10;
@@ -662,7 +619,7 @@ hold off
 %legend('Coral cover', 'Macroalgal cover', 'Herbivore biomass', 'location', 'southwest', 'FontSize',14);
 %lgd = legend;
 
-tt  = tpset(2); % flat by 5 for attraction
+tt  = tpset(2); 
 nexttile
 plot(xset(b1i:b2i),CrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
 ylim([-0.01 1.75])
@@ -677,7 +634,7 @@ hold on
 plot(xset(b1i:b2i),HrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.9294 0.6941 0.1255])
 hold off
 
-tt  = tpset(3); % flat by 5 for attraction
+tt  = tpset(3); 
 nexttile
 plot(xset(b1i:b2i),CrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
 ylim([-0.01 1.75])
@@ -692,7 +649,7 @@ hold on
 plot(xset(b1i:b2i),HrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.9294 0.6941 0.1255])
 hold off
 
-tt  = tpset(4); % flat by 5 for attraction
+tt  = tpset(4); 
 nexttile
 plot(xset(b1i:b2i),CrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
 ylim([-0.01 1.75])
@@ -726,7 +683,7 @@ legend('Coral cover', 'Macroalgal cover', 'Herbivore biomass', 'location', 'nort
 %legend('Coral cover', 'Macroalgal cover', 'Herbivore biomass', 'location', 'southwest', 'FontSize',14);
 %lgd = legend;
 
-tt  = tpset(2); % flat by 5 for attraction
+tt  = tpset(2); 
 nexttile
 plot(xset(b1i:b2i),CrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
 ylim([-0.01 1.75])
@@ -740,7 +697,7 @@ hold on
 plot(xset(b1i:b2i),HrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.9294 0.6941 0.1255])
 hold off
 
-tt  = tpset(3); % flat by 5 for attraction
+tt  = tpset(3); 
 nexttile
 plot(xset(b1i:b2i),CrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
 ylim([-0.01 1.75])
@@ -754,7 +711,7 @@ hold on
 plot(xset(b1i:b2i),HrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.9294 0.6941 0.1255])
 hold off
 
-tt  = tpset(4); % flat by 5 for attraction
+tt  = tpset(4); 
 nexttile
 plot(xset(b1i:b2i),CrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
 ylim([-0.01 1.75])
@@ -785,7 +742,7 @@ plot(xset(b1i:b2i),HrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.9294 0
 hold off
 %legend('Coral cover', 'Macroalgal cover', 'Herbivore biomass', 'location', 'northwest', 'FontSize',14, 'NumColumns', 2);
 
-tt  = tpset(2); % flat by 5 for attraction
+tt  = tpset(2); 
 nexttile
 plot(xset(b1i:b2i),CrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
 ylim([-0.01 1.75])
@@ -799,7 +756,7 @@ hold on
 plot(xset(b1i:b2i),HrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.9294 0.6941 0.1255])
 hold off
 
-tt  = tpset(3); % flat by 5 for attraction
+tt  = tpset(3); 
 nexttile
 plot(xset(b1i:b2i),CrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
 ylim([-0.01 1.75])
@@ -813,7 +770,7 @@ hold on
 plot(xset(b1i:b2i),HrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.9294 0.6941 0.1255])
 hold off
 
-tt  = tpset(4); % flat by 5 for attraction
+tt  = tpset(4); 
 nexttile
 plot(xset(b1i:b2i),CrunsT(tt, b1i:b2i, plotj), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
 ylim([-0.01 1.75])

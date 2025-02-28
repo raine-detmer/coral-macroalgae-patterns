@@ -34,7 +34,7 @@ dC = 0.02;
 phiM = 0.01; 
 
 % herbivore parameters
-rH = 0.2;%0.1; % herbivore growth rate
+rH = 0.2; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
 f = 0; % herbivore fishing pressure
 phiH = 0.05;
@@ -45,9 +45,6 @@ fset = linspace(0.12, 0.24, 120);
 % holding vectors for equilibrium values
 Cstars = NaN(length(fset), 4); % coral
 Mstars = NaN(length(fset), 4); % macroalgae (vuln + invuln)
-
-%Mistars = NaN(length(fset), 4);
-%Mvstars = NaN(length(fset), 4);
 
 % turn off warning
 warning('off','symbolic:numeric:NumericalInstability')
@@ -60,7 +57,7 @@ for i = 1:length(fset)%for each fishing pressure
     % get the eqns to solve
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
-    %eq3i = rH*H-dH*H*H-fi*H ==0; %H
+    %eq3i = rH*H-dH*H*H-fi*H ==0; % no herbivore dynamics
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq4i],[Mi,C, Mv], [0 Inf; 0 Inf; 0 Inf]); % just pos and real
@@ -78,8 +75,8 @@ bstart = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
 % use vertcat to concatenate vertical vectors
 % for f on x axis:
-Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:bend, 3), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
-Cmids = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:bend, 2), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:bend, 3), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
+Cmids = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:bend, 2), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 1));
 
 Mups = vertcat(Mstars(1:bend, 1), Mstars(bend+1:end, 3)); 
@@ -110,7 +107,6 @@ tset = linspace(0,t_end,2*2500);
 
 % initial conditions
 icchoice = 4; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
-%icchoice = 3; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
 
 
 C0high = 0.85; % coral cover in initial coral patches
@@ -144,7 +140,6 @@ b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
 
 %  values of fishing pressure
-%fset21 = linspace(0.13, 0.22, 20); 
 fset21 = linspace(0.11, 0.21, 20); 
 
 % holding arrays
@@ -158,7 +153,7 @@ Mmeans = NaN(length(fset21));
 Hmeans = NaN(length(fset21));
 
 
-summ10 = 1; % 1 = record peak summaries, 0 = record all peaks
+summ10 = 1; % 1 = record metrics from 3 peaks closest to center of landscape, 0 = record all peaks
 
     tic
    for i = 1:length(fset21) % for each fishing pressure
@@ -189,7 +184,6 @@ summ10 = 1; % 1 = record peak summaries, 0 = record all peaks
 
 %% plot bifurcation diagram for macroalgae (Fig. 1a) and coral (Fig. 1b)
 
-%fpts = [6, 10, 14, 18]; % elements of fset21 to highlight in the figure
 fpts = [2+2, 5+2, 10+2, 17+2]; % elements of fset21 to highlight in the figure
 
 

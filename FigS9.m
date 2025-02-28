@@ -2,12 +2,15 @@
 
 % sensitivity of the busse balloon to non-spatial parameters
 
+% takes about 6 min to run, or can load the results of these simulations:
+load('code output/FigS9.mat','Mlowtp', 'flowtp')
+
 
 %% PDE parameters
 % default PDE parameters
-diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates 
 taxisM = 0; 
-taxisC = -0.75;%0; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -24,7 +27,7 @@ tset = linspace(0,t_end,2*2500);
 icchoice = 4; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
 
 C0high = 0.85;
-C0low = 0.05;%0.05;
+C0low = 0.05;
 M0high = 0.85;
 M0low = 0.05;
 
@@ -51,32 +54,22 @@ b2 = xset(end)-dthresh; % upper boundary for peak consideration
 b1i = find(abs(xset-b1)==min(abs(xset-b1)));
 b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
-summ10 = 1; % 1 = record peak summaries, 0 = record all peaks
+summ10 = 1; % 1 = record metrics from just the 3 peaks closest to center of landscape, 0 = record all peaks
 
 %% simulations
 
-% estimated upper and lower tipping points in Mathematica
-% for the lower tipping point:
-% lowest across all parameters is 0.109 (for increase in rH)
-% highest is 0.114 (for rH)
 
-% for the upper tipping point:
-% lowest is 0.12 (for rH)
-% highest is 0.125 (for rH)
-
-%finitL = linspace(0.108, 0.115, 25); % difference between consecutive vals is 3e-4
-%finitU = linspace(0.119, 0.126, 25);
-
-% UPDATE: use range of values to search for the lower tipping point for each parameter set
+% use ranges of values to search for the lower tipping point for each parameter set
 % (based on rough estimate of tipping point values from Mathematica)
 % first column = lower end of range, 2nd column = upper end of range
-% default parameter values
+% range for default parameter values:
 finitLD = [0.167, 0.168]; 
-% 10% increase
+% range for 10% increase in phiC (1), gTC (2), etc
 % phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di,rH, dH, phiH
 finitLi = [0.168, 0.169; 0.171, 0.172; 0.162, 0.163; 0.156, 0.157; 0.165, 0.166; 0.166, 0.167;
    0.163, 0.164; 0.167, 0.168; 0.169, 0.17; 0.165, 0.166; 0.179, 0.18; 0.187, 0.188; 0.158, 0.159; 0.17, 0.175]; 
-% 10% decrease
+% 10% decrease in phiC (1), gTC (2), etc
+% phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di,rH, dH, phiH
 finitLd= [0.165, 0.166; 0.163, 0.164; 0.172, 0.173; 0.179, 0.18; 0.169, 0.17; 0.167, 0.168;
     0.171, 0.172; 0.167, 0.168; 0.165, 0.166; 0.169, 0.17; 0.154, 0.155; 0.147, 0.148; 0.176, 0.177; 0.16, 0.165]; 
 
@@ -100,7 +93,6 @@ phiH = 0.05;
 % default parameter set
 %phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, phiH
 pardef = [0.01, 0.1, 0.4, 0.4, 0.02, 0.01, 0.5, 0.2, 2, 2, 0.4, 0.2, 0.1, 0.05];
-% phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di,rH, dH
 
 
 % structure for each parameter: matrix with 3 rows and 2 columns, where
@@ -112,16 +104,16 @@ pardef = [0.01, 0.1, 0.4, 0.4, 0.02, 0.01, 0.5, 0.2, 2, 2, 0.4, 0.2, 0.1, 0.05];
 % get the parameter sets
 parsens = NaN(length(pardef),2);
 
-for i = 1:length(pardef)
+for i = 1:length(pardef) % for each parameter
 
     for j = 1:2
 
        if j == 1
-           %parsens(i,j) = 0.99*pardef(i); % 10% decrease
-           parsens(i,j) = 0.9*pardef(i); % 10% decrease
+           
+           parsens(i,j) = 0.9*pardef(i); % 10% decrease in ith parameter
        else 
-           %parsens(i,j) = 1.01*pardef(i); % 10% increase
-           parsens(i,j) = 1.1*pardef(i); % 10% increase
+           
+           parsens(i,j) = 1.1*pardef(i); % 10% increase in ith parameter
        end
 
     end
@@ -139,11 +131,13 @@ flowtp = NaN(3, 1,length(pardef));
 
 % get the defaults
 pars = pardef;
+
+% fishing pressure just before the tipping point
 [Dlowtp] =  tpfun(pars, finitLD); % output is [fishing pressure just below tipping point, nonspatial eq C cover at this fishing pressure, and nonspatial M cover at this fishing pressure]
 
 ftest = Dlowtp(1);
 
-% ftest = Dlowtp(1)-0.005;
+% run the PDE model at this fishing pressure
 [Dsol1] = BriggsHrPDEextH(pars(1), pars(2), pars(3), pars(4), pars(5), pars(6), pars(7), ...
     pars(8), pars(9), pars(10), pars(11), pars(12), pars(13), ftest,diffs,taxisM, ...
     taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ...
@@ -181,43 +175,43 @@ ftest = Dlowtp(1);
 
 
 tic
-for i = 1:length(pardef)
+for i = 1:length(pardef) % for each parameter
    % for i = 14
 
-
-    % test without phiC (1) and phiM (6)
-    %if i ~= 1 && j ~= 6
 
     for j = 1:3
 
         if j==1 % default value
 
-            % Clowtp(j,1,i) = Dlowtp(2);
-            % Clowtp(j,2,i) = mean(Dsol1(end, b1i:b2i, 2));
-
+            % calculate equilibrium M cover for nonspatial and PDE models
+            % at the fishing pressure just below the lower tipping point
             Mlowtp(j,1,i) = Dlowtp(2);
             Mlowtp(j,2,i) = mean(Dsol1(end, b1i:b2i, 1)+ Dsol1(end,b1i:b2i,4));
 
+            % store this fishing pressure
             flowtp(j,1,i) = Dlowtp(1);
 
         else
 
             pars = pardef;
             pars(i) = parsens(i,j-1);% 1st col = 10% dec, 2nd col = 10% inc
-            % get the range of fishing pressures
+            
+            % get the range of fishing pressures to search over to find
+            % lower tipping point
 
             if j==2 % decrease
 
-                finitL = finitLd(i, :);
+                finitL = finitLd(i, :); % use set of fishing pressures for 10% decrease in ith parameter
   
             else % increase
-                finitL = finitLi(i, :);
+                finitL = finitLi(i, :); % use set of fishing pressures for 10% increase in ith parameter
             end
            
-            [lowtp] =  tpfun(pars, finitL); %uptp = [fup, Ceq, Meq];
+            [lowtp] =  tpfun(pars, finitL); % calculate the fishing pressure just below the lower tipping point and the equilibrium M cover at this fishing pressure for the nonspatial model
 
-            flowtp(j,1,i) = lowtp(1);
+            flowtp(j,1,i) = lowtp(1); % store this fishing pressure
 
+            % now simulate the PDE model at this fishing pressure
             ftest = lowtp(1);
             [sol1] = BriggsHrPDEextH(pars(1), pars(2), pars(3), pars(4), pars(5), pars(6), pars(7), ...
     pars(8), pars(9), pars(10), pars(11), pars(12), pars(13), ftest,diffs,taxisM, ...
@@ -227,6 +221,8 @@ for i = 1:length(pardef)
             % Clowtp(j,1,i) = lowtp(2);
             % Clowtp(j,2,i) = mean(sol1(end, b1i:b2i, 2));
 
+            % store the equilibrium M cover at this fishing pressure
+            % predicted by the nonspatial and spatial models
             Mlowtp(j,1,i) = lowtp(2);
             Mlowtp(j,2,i) = mean(sol1(end, b1i:b2i, 1)+ sol1(end,b1i:b2i,4));
 
@@ -245,17 +241,10 @@ toc % took 365 seconds (about 6min)
 save('code output/FigS9.mat','Mlowtp', 'flowtp')
 
 
-%% load results
-%load('code output/FigS9.mat','Mlowtp', 'flowtp')
-
-
-
 %% plot results
 
-%ymn = -2.5;
-%ymx = 2.5;
-ymn = -10;%-1.2;
-ymx = 10;%1.2;
+ymn = -10;
+ymx = 10;
 
 
 Mcol = [0.4667 0.6745 0.1882];
@@ -450,38 +439,38 @@ text(xl(1),yl(2),'o) \phi_H', 'HorizontalAlignment','right','VerticalAlignment',
 % point with and without taxis and plot results
 
 
-i = 12;
-j = 2; % 1 = decrease, 2 = increase
-
-pars = pardef;
-pars(i) = parsens(i,j);% 1st col = 10% dec, 2nd col = 10% inc
-
-ftest = flowtp(j+1,1,i);
-
-pars(i)
-ftest
-
-% with taxis
-[sol1t] = BriggsHrPDE(pars(1), pars(2), pars(3), pars(4), pars(5), pars(6), pars(7), ...
-    pars(8), pars(9), pars(10), pars(11), pars(12), pars(13), ftest,diffs,taxisM, ...
-    taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ...
-    ampC0, ampM0, period0, icchoice); 
-
-% no taxis
-[sol1nt] = BriggsHrPDE(pars(1), pars(2), pars(3), pars(4), pars(5), pars(6), pars(7), ...
-    pars(8), pars(9), pars(10), pars(11), pars(12), pars(13), ftest,diffs,taxisM, ...
-    0, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ...
-    ampC0, ampM0, period0, icchoice); 
-
-
-figure(3)
-plot(xset, sol1t(end,:,2), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
-hold on 
-plot(xset, sol1t(end,:,1) + sol1t(end,:,4), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
-hold off
-
-figure(4)
-plot(xset, sol1nt(end,:,2), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
-hold on 
-plot(xset, sol1nt(end,:,1) + sol1nt(end,:,4), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
-hold off
+% i = 12;
+% j = 2; % 1 = decrease, 2 = increase
+% 
+% pars = pardef;
+% pars(i) = parsens(i,j);% 1st col = 10% dec, 2nd col = 10% inc
+% 
+% ftest = flowtp(j+1,1,i);
+% 
+% pars(i)
+% ftest
+% 
+% % with taxis
+% [sol1t] = BriggsHrPDE(pars(1), pars(2), pars(3), pars(4), pars(5), pars(6), pars(7), ...
+%     pars(8), pars(9), pars(10), pars(11), pars(12), pars(13), ftest,diffs,taxisM, ...
+%     taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ...
+%     ampC0, ampM0, period0, icchoice); 
+% 
+% % no taxis
+% [sol1nt] = BriggsHrPDE(pars(1), pars(2), pars(3), pars(4), pars(5), pars(6), pars(7), ...
+%     pars(8), pars(9), pars(10), pars(11), pars(12), pars(13), ftest,diffs,taxisM, ...
+%     0, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ...
+%     ampC0, ampM0, period0, icchoice); 
+% 
+% 
+% figure(3)
+% plot(xset, sol1t(end,:,2), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
+% hold on 
+% plot(xset, sol1t(end,:,1) + sol1t(end,:,4), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
+% hold off
+% 
+% figure(4)
+% plot(xset, sol1nt(end,:,2), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
+% hold on 
+% plot(xset, sol1nt(end,:,1) + sol1nt(end,:,4), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
+% hold off

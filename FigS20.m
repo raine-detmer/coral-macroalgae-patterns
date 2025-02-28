@@ -2,46 +2,46 @@
 
 % range of patterns as a function of external herbivore recruitment
 
-% region of bistability changes with phiH so need to calculate the region
-% of bistability of each, and then make the y-axis the distance below the
-% tipping point the patterns extend expressed as a percentage of the range
-% of bistability or something like that
+
+% takes ~15 min to run, or can load ouput:
+load('code output/FigS20.mat','ftps','flims1')
 
 %% get the boundaries of the region of bistability
 
+% region of bistability changes with phiH so need to calculate the region
+% of bistability each time, and then make the y-axis the distance below the
+% tipping point the patterns extend expressed as a percentage of the range
+% of bistability 
+
 % external recruitment set
 phiHset = linspace(0, 0.2, 10);
-
-
-% and record 
-% ftest1 = fset2(bstart2)-0.001*fset2(bstart2); % for initial test of patterns
 
 
 % define the symbols
 syms Mi C H Mv
 
 % define parameters
-gTC = 0.1; %0.1
-gamma = 0.4; %0.4
-gTI = 0.4;%0.4
-rM = 0.5; %0.5
-gTV = 0.2;%0.2
-dv = 2; % 2, grazing rate on vulnerable M
-omega = 2; % 2
-di = 0.4; % 0.4, grazing rate on invulnerable M
-dC = 0.02;% default 0.05 
+gTC = 0.1; 
+gamma = 0.4; 
+gTI = 0.4;
+rM = 0.5; 
+gTV = 0.2;
+dv = 2; 
+omega = 2; 
+di = 0.4; 
+dC = 0.02;
 
-phiM = 0.01; % default 0.0001
-phiC = 0.01; % default 0.001
+phiM = 0.01; 
+phiC = 0.01; 
 
 % herbivore parameters
-rH = 0.2;%0.1; % herbivore growth rate
+rH = 0.2; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
 f = 0; % herbivore fishing pressure
 phiH = 0.05; % external recruitment rate
 
 
-% lower bound of fishing pressures
+% lower bound of fishing pressures for low, intermediate, and high phiH's
 % 1: 0-0.044, 2: 0.0667 to 0.111, 3: 0.111 to 0.2
 fsetL = [0.1, 0.16, 0.22];
 
@@ -72,12 +72,9 @@ end
 
 
 % holding vector of eq values
-Cstars = NaN(length(fset), 8);%not sure how many pos, real eq...maybe run a single 
-% value in region of bistability to check how many solutions there were?
+Cstars = NaN(length(fset), 8);
 Mstars = NaN(length(fset), 8);
 
-%Mistars = NaN(length(fset), 4);
-%Mvstars = NaN(length(fset), 4);
 
 for i = 1:length(fset)%for each element of gset
     % get the eqns
@@ -110,7 +107,7 @@ toc % about 730 seconds
 %% PDE parameter set up
 
 % PDE parameters
-diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates
 taxisM = 0; 
 taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
@@ -118,17 +115,11 @@ taxisT = 0;
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
 
 
-% space
+% space parameters
 len = 400;
 xset = linspace(-len/2,len/2,800);
 
-% time
-% default for equilibration
-%t_end = 3*50000;
-%tset = linspace(0,t_end,2*2500); 
-
-% since here we just care about whether there are patterns and not whether
-% they have fully equilibrated, reduce the simulation length a bit
+% time parameters
 t_end = 5000;
 tset = linspace(0,t_end,2500); 
 
@@ -136,7 +127,7 @@ tset = linspace(0,t_end,2500);
 icchoice = 4; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
 
 C0high = 0.85;
-C0low = 0.05;%0.05;
+C0low = 0.05;
 M0high = 0.85;
 M0low = 0.05;
 
@@ -167,13 +158,10 @@ b1i = find(abs(xset-b1)==min(abs(xset-b1)));
 b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
 
-
 errortol = 0.0005; % error tolerance for binary search algorithm
 
 pkN = 2; % number of peaks (in M or C) needed to count as patterns
 
-% set of initial conditions
-%parset2 = [round(length(xset)/2), round(length(xset)/64)];
 
 % set of taxis values
 txset = [-0.5, -0.75, -1];
@@ -184,8 +172,8 @@ txset = [-0.5, -0.75, -1];
 
 
 % reset defaults
-diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
-taxisC = -0.75;%0; % taxis rate toward coral
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates
+taxisC = -0.75; % taxis rate toward coral
 
 parset = phiHset; % external herbivore recruitment
 parset2 = txset; % taxis values
@@ -194,12 +182,12 @@ parset2 = txset; % taxis values
 flims = NaN(1, length(parset), length(parset2)); % 1 = lower limit, middle = phiH, third = taxis
 
 tic
-for z = 1:length(parset2)
+for z = 1:length(parset2) % for each element of parset2
 % for z = 1
 
     taxisC = parset2(z);
 
-for k = 1:length(parset) % for each external recruitment rate
+for k = 1:length(parset) % for each element of parset
 % for k = 1
    
     phiH = parset(k);
@@ -271,7 +259,6 @@ save('code output/FigS20.mat','ftps','flims1')
 
 %% plot results
 
-load('code output/FigS20.mat','ftps','flims1')
 
 % width of bistability region
 bistab = ftps(2, :)-ftps(1, :); 
@@ -300,48 +287,7 @@ lgd = legend('-0.5', '-0.75', '-1', 'location', 'northeast', 'FontSize',14);
 title(lgd,{'Taxis towards coral'})
 
 
-% % extent of patterns below lower tipping point
-% fprop1 = (ftps(1, :)-flims1(:,:,1));
-% fprop2 = (ftps(1, :)-flims1(:,:,2));
-% fprop3 = (ftps(1, :)-flims1(:,:,3));
-% 
-% figure(1)
-% %plot(phiHset, fprop1, 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
-% plot(phiHset, horzcat(fprop1(1:6), repelem(0, 4)), 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
-% xlabel('Rate of external herbivore recruitment (\phi_H)','FontSize',20) % t for shared label
-% ylabel({'Extent of Busse balloon'},'FontSize',20)
-% xlim([min(phiHset), max(phiHset)])
-% ylim([0, 1.15*max(horzcat(fprop1, fprop2, fprop3))])
-% hold on
-% %plot(phiHset(7:10), repelem(0, 4), 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
-% plot(phiHset, fprop2, 'Col', Mcol, "LineStyle","--", 'LineWidth', 2.5)
-% plot(phiHset, fprop3, 'Col', Mcol, "LineStyle",":", 'LineWidth', 2.5)
-% hold off
-% lgd = legend('-0.5', '-0.75', '-1', 'location', 'northeast', 'FontSize',14);
-% title(lgd,{'Taxis towards coral'})
 
-
-% % extent of patterns below lower tipping point as a fraction of the width
-% % of the region of bistability
-% fprop1 = (ftps(1, :)-flims1(:,:,1))./bistab;
-% fprop2 = (ftps(1, :)-flims1(:,:,2))./bistab;
-% fprop3 = (ftps(1, :)-flims1(:,:,3))./bistab;
-
-% %plot(phiHset, fprop1, 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
-% plot(phiHset, horzcat(fprop1(1:6), repelem(0, 4)), 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
-% xlabel('Rate of external herbivore recruitment (\phi_H)','FontSize',20) % t for shared label
-% %ylabel({'Extent of spatial patterns beyond'; 'tipping point (prop. of bistability range)'},'FontSize',20)
-% ylabel({'Busse balloon extent'; '(relative to region of bistability)'},'FontSize',20)
-% %ylabel({'Range of fishing pressures with patterns'; '(prop. to range of bistability)'},'FontSize',22)
-% xlim([min(phiHset), max(phiHset)])
-% ylim([0, max(horzcat(fprop1, fprop2, fprop3))])
-% hold on
-% %plot(phiHset(7:10), repelem(0, 4), 'Col', Mcol, "LineStyle","-", 'LineWidth', 2.5)
-% plot(phiHset, fprop2, 'Col', Mcol, "LineStyle","--", 'LineWidth', 2.5)
-% plot(phiHset, fprop3, 'Col', Mcol, "LineStyle",":", 'LineWidth', 2.5)
-% hold off
-% lgd = legend('-0.5', '-0.75', '-1', 'location', 'northeast', 'FontSize',14);
-% title(lgd,{'Taxis towards coral'})
 
 %% check simulations
 

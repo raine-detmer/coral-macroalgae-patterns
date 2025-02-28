@@ -2,6 +2,12 @@
 
 % sensitivity to coral and macroalgal diffusion
 
+% can load results from these simulations instead of running everything
+% below:
+
+ load('code output/FigS13.mat','CmeansCd','MmeansCd', 'HmeansCd', 'CmeansMd', ...
+     'MmeansMd', 'HmeansMd')
+
 
 %% plot colors
 Mcol = [0.4667 0.6745 0.1882];
@@ -36,9 +42,9 @@ phiH = 0.05; % external recruitment rate
 % PDE set up  
 
 % PDE parameters
-diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates 
 taxisM = 0; 
-taxisC = -0.75;%0; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -317,7 +323,4 @@ xline([flow fup]) % bistability region
  save('code output/FigS13.mat','CmeansCd','MmeansCd', 'HmeansCd', 'CmeansMd', ...
      'MmeansMd', 'HmeansMd')
 
-%% load results
 
- % load('code output/FigS13.mat','CmeansCd','MmeansCd', 'HmeansCd', 'CmeansMd', ...
- %     'MmeansMd', 'HmeansMd')

@@ -1,9 +1,13 @@
 % README: code for making Figure S14
 
+% takes around 20 min to run the simulations for the diffusion vs. taxis
+% diagram, or can load the results here:
+load('code output/FigS14.mat','mntx1')
+
 %% setup
 % plotting colors
-Mcol = [0.4667 0.6745 0.1882];
-Ccol = [0.3020 0.7451 0.9333];
+Mcol = [0.4667 0.6745 0.1882]; % macroalgae
+Ccol = [0.3020 0.7451 0.9333]; % coral
 Hcol = [0.9294 0.6941 0.1255]; % herbivores
 
 
@@ -27,7 +31,7 @@ dC = 0.02;
 phiM = 0.01; 
 
 % herbivore parameters
-rH = 0.2;%0.1; % herbivore growth rate
+rH = 0.2; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
 f = 0; % herbivore fishing pressure
 phiH = 0.05; % external recruitment
@@ -39,7 +43,7 @@ fset2 = linspace(0.165, 0.169, 50);
 % holding vector of eq values
 Cstars2 = NaN(length(fset2), 4);
 
-for i = 1:length(fset2)%for each element of gset
+for i = 1:length(fset2)%for each element of fset2
     % get the fishing pressure
     fi = fset2(i);
 
@@ -68,7 +72,7 @@ fset3 = linspace(0.185, 0.189, 50);
 % holding vector of eq values
 Cstars3 = NaN(length(fset3), 4);
 
-for i = 1:length(fset3)%for each element of gset
+for i = 1:length(fset3)%for each element of fset3
     % get the fishing pressure
     fi = fset3(i);
 
@@ -96,7 +100,7 @@ fup = fset3(bend3); % upper boundary of bistability
 %% PDE parameter set up
 
 % PDE parameters
-diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates 
 taxisM = 0; 
 taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
@@ -108,13 +112,7 @@ diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundari
 len = 400;
 xset = linspace(-len/2,len/2,800);
 
-% time
-% default for equilibration
-%t_end = 3*50000;
-%tset = linspace(0,t_end,2*2500); 
-
-% since here we just care about whether there are patterns and not whether
-% they have fully equilibrated, reduce the simulation length a bit
+% time parameters
 t_end = 50000;
 tset = linspace(0,t_end,2500); 
 
@@ -144,18 +142,13 @@ dthresh = 0.25*len; % threshold distance from edge before a peak gets considered
 b1 = xset(1) + dthresh; % lower boundary for peak consideration
 b2 = xset(end)-dthresh; % upper boundary for peak consideration
 
-summ10 = 1; % 1 = record peak summaries, 0 = record all peaks
+summ10 = 1; % 1 = record metrics from 3 peaks closest to center of landscape, 0 = record all peaks
 
 % get the indeces of these boundaries (will use these for intervals to take
 % spatial averages)
 %bend = find(isnan(Cstars(:, 3))==0, 1, 'last' );% end of bistability region
 b1i = find(abs(xset-b1)==min(abs(xset-b1)));
 b2i = find(abs(xset-b2)==min(abs(xset-b2)));
-
-
-% taxis and diffusion sets
-%txset = linspace(0, 1, 9);
-%diffHset = linspace(0.05, 1, 9); % don't go lower than 0.05 bc that's the diff values for C and M
 
 
 errortol = 0.0005; % error tolerance for binary search algorithm
@@ -167,16 +160,12 @@ ftest1 = fset2(bstart2)-0.01*fset2(bstart2); % for initial test of patterns
 % set of initial conditions
 parset2 = [round(length(xset)/2), round(length(xset)/64)];
 
-% set of fishing pressures in the region of bistability
-%birange = flip(ftest1:0.0002:fset3(bend3));
+
+%% panels on righthand side of figure
 
 
-%% tests
-
-%txset2 = [-0.6428, -3.8589]*1.75;%*1.05;
-txset2 = [-1.45, -7];%*1.05;
-%diffHset2 = [1.1556, 6.6833]; 
-diffHset2 = [1.2, 6.75]; 
+txset2 = [-1.45, -7];% taxis values
+diffHset2 = [1.2, 6.75]; % herbivore diffusion values
 
 C0widths = round(length(xset)/64);  % step widths
 initC = stepfun(C0widths, xset); 
@@ -196,13 +185,13 @@ Hmeans = NaN(length(txset2));
 % height, 5 = number of peaks (where C>M), 6 = number of peaks even if C<M
 
 tic
-for j = 1:length(txset2) % for each recruitment scenario
+for j = 1:length(txset2) % for each element of txset2
     % get the movement parameters
     diffs = [0.05,0.05,diffHset2(j), 0]; % diffusion rates 
-    taxisC = txset2(j);%0; % taxis rate toward coral
+    taxisC = txset2(j); % taxis rate toward coral
 
 
-    ftest = ftest1;
+    ftest = ftest1; % set the fishing pressure
 
      % run PDE
      [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
@@ -224,7 +213,7 @@ toc
 
  %% plot results
 
- % left panel of Fig. S14
+ % right panel of Fig. S14
 
  j = 1;
 
@@ -233,7 +222,7 @@ plot(xset(b1i:b2i),Cruns(end, b1i:b2i, j, i), 'LineWidth',2, 'Color', Ccol)
 ylim([-0.01 1.75])
 xlabel('Location','FontSize',22) % t for shared label
 ylabel('Abundance','FontSize',22)
-%title('A) \tau_C = -0.96, D_C = 1.16', 'FontSize',16)
+%title('A) \tau_C = -1.45, D_H = 1.2', 'FontSize',16)
 ax = gca;
 ax.TitleHorizontalAlignment = 'left';
 hold on
@@ -248,7 +237,7 @@ plot(xset(b1i:b2i),Cruns(end, b1i:b2i, j, i), 'LineWidth',2, 'Color', Ccol)
 ylim([-0.01 1.75])
 xlabel('Location','FontSize',22) % t for shared label
 ylabel('Abundance','FontSize',22)
-%title('B) \tau_C = -5.79, D_C = 8.89', 'FontSize',16)
+%title('B) \tau_C = -7, D_H = 6.75', 'FontSize',16)
 ax = gca;
 ax.TitleHorizontalAlignment = 'left';
 hold on
@@ -261,7 +250,6 @@ hold off
 %% repeat with second set of initial conditions
 
 % takes a while to fully equilibrate so increase t
-
 t_end = 5*50000;
 tset = linspace(0,t_end,2*2500); 
 
@@ -284,10 +272,10 @@ Hmeans = NaN(length(txset2));
 % height, 5 = number of peaks (where C>M), 6 = number of peaks even if C<M
 
 tic
-for j = 1:length(txset2) % for each recruitment scenario
+for j = 1:length(txset2) % for each element of txset2
     % get the movement parameters
     diffs = [0.05,0.05,diffHset2(j), 0]; % diffusion rates 
-    taxisC = txset2(j);%0; % taxis rate toward coral
+    taxisC = txset2(j);% taxis rate toward coral
 
 
     ftest = ftest1;
@@ -312,7 +300,7 @@ toc
 
  %% plot results
 
- % left panel of Fig S14
+ % right panel of Fig S14
 
  j = 1;
 
@@ -321,7 +309,7 @@ plot(xset(b1i:b2i),Cruns(end, b1i:b2i, j, i), 'LineWidth',2, 'Color', Ccol)
 ylim([-0.01 1.75])
 xlabel('Location','FontSize',22) % t for shared label
 ylabel('Abundance','FontSize',22)
-%title('A) \tau_C = -0.96, D_C = 1.16', 'FontSize',16)
+%title('A) \tau_C = -1.45, D_H = 1.2', 'FontSize',16)
 ax = gca;
 ax.TitleHorizontalAlignment = 'left';
 hold on
@@ -337,7 +325,7 @@ plot(xset(b1i:b2i),Cruns(end, b1i:b2i, j, i), 'LineWidth',2, 'Color', Ccol)
 ylim([-0.01 1.75])
 xlabel('Location','FontSize',22) % t for shared label
 ylabel('Abundance','FontSize',22)
-%title('B) \tau_C = -5.79, D_C = 8.89', 'FontSize',16)
+%title('B) \tau_C = -7, D_H = 6.75', 'FontSize',16)
 ax = gca;
 ax.TitleHorizontalAlignment = 'left';
 hold on
@@ -350,8 +338,7 @@ hold off
 
 %% taxis and diffusion operating diagrams
 
-% negative taxis (attraction to coral)
-
+% binary search algorithm:
 % for each value of diffusion, find the lowest value of taxis for which
 % there are still patterns and do this for large and small initial patch
 % widths 
@@ -360,24 +347,19 @@ hold off
 t_end = 50000;
 tset = linspace(0,t_end,2500); 
 
-
+% sets of initial conditions to iterate over
 parset2 = [round(length(xset)/2), round(length(xset)/64)];
-%parset2 = round(length(xset)/2);
-
-% binary search algorithm 
+%parset2 = round(length(xset)/2); 
 
 % reset defaults
 diffs = [0.05,0.05,0.25, 0]; % diffusion rates 
-taxisC = -0.75;%0; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 
-
+% fishing pressure: just below the lower tipping point
 ftest = fset2(bstart2)-0.01*fset2(bstart2);
 
-%diffHset3 = linspace(0.05, 1.5, 10);
-
+% set of diffusion values to iterate over
 diffHset3 = linspace(0.05, 10, 10);
-% make 0.2 (default) is included
-%diffHset3 = sort([diffHset3, 0.2, 1]);
 
 
 parset = diffHset3; % parameter set 
@@ -385,37 +367,36 @@ parset = diffHset3; % parameter set
 % holding arrays
 mntx = NaN(1, length(parset), length(parset2)); % min value of taxis for which there are patterns
 
-%errortol = 0.001; % use the same error tolerance as for the fishing
-%pressure range diagrams
+
 
 tic
-for z = 1:length(parset2)
+for z = 1:length(parset2) % for each initial condition
 
  C0widths = parset2(z);  % step widths
 initC = stepfun(C0widths, xset); 
 
 
-for k = 1:length(parset) % for each step width
+for k = 1:length(parset) % for each diffusion rate
 
     diffs = [0.05,0.05,parset(k), 0];
 
+    % get the boundaries of the range of taxis values to search over
         if k == 1 || isnan(mntx(1,k-1,z))% if this is the first diff level 
         txstart = 0;
-        %txend = 5*parset(k);
         txend = -5*parset(k);
 
         else % know that as diff increases, the lower boundary should get higher so can make the initial lower bound higher
-       % txstart = max(mntx(1,k-1,z) - 10*errortol,0); % mntx values are positive
-       % txend = 5*parset(k);
+      
         txstart = min(mntx(1,k-1,z) + 10*errortol,0); % mntx values are neg
         txend = -5*parset(k);
+
         end
 
 while abs(txend-txstart) >= errortol
 
-   % taxisC = -1*(txend + txstart)/2; % calculate the value of taxis in the middle
+  
     taxisC = (txend + txstart)/2; % calculate the value of taxis in the middle
-    %taxisC
+  
    
     % run the pde with this level of taxis
     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
@@ -429,10 +410,10 @@ while abs(txend-txstart) >= errortol
       %npks
 
     if(npks >= pkN) % if there are peaks
-       % txend = -1*taxisC; % taxis was too high, so make the midpoint the new upper bound
+       
         txend = taxisC; % taxis was too high, so make the midpoint the new upper bound
     else % if there weren't any peaks
-         %txstart = -1*taxisC; % taxis was too low, so make the midpoint the new lower bound
+         
          txstart = taxisC; % taxis was too low, so make the midpoint the new lower bound
     end
     
@@ -461,25 +442,24 @@ mntx1 = mntx;
 
 
 
-%% plot operating diagram
+%% plot operating diagram (left panel)
 
 flow = 0.1111; % lower tipping point (calculated in txdiff12)
 fup = 0.1229; % upper tipping point
 
-%fref = fset2(bstart2)-0.005*fset2(bstart2);
-%fref = (flow+0.000022449)-0.005*(flow+0.000022449);
-
+% plot colors for each set of initial conditions
 C1 = [0.0118    0.6588    0.6588];
 C2 = [0.1412    0.0824    0.9294];
 
-%txset = linspace(0, 1, 9);
+
 diffHset3 = linspace(0.05, 10, 10);
 
 % test points
 % txset2 = [-0.6428, -3.8589]*1.75;
 % diffHset2 = [1.1556, 7.7889]; 
 
-txset2 = [-1.45, -7];%*1.05;
+% taxis and diffusion values used in right panels:
+txset2 = [-1.45, -7];
 diffHset2 = [1.2, 6.75]; 
 
 
@@ -539,10 +519,6 @@ lgd.FontSize = 14;
 %% save everything
 
 save('code output/FigS14.mat','mntx1')
-
-%% load everything
-
-% load('code output/FigS14.mat','mntx1')
 
 
 

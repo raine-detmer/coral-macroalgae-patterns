@@ -3,7 +3,14 @@
 
 % takes about 15 min to run
 
+% or can load the output from the most computationally-intensive simulations:
+load('code output/FigS6.mat','CmeansST', 'MmeansST', 'HmeansST', 'CmeansS', ...
+     'MmeansS', 'HmeansS','CmeansR', 'MmeansR', 'HmeansR', 'Mmxall', ...
+     'Mmnall', 'Cmxall', 'Cmnall')
+
 %% set up
+
+% colors for plotting
 Mcol = [0.4667 0.6745 0.1882];
 Ccol = [0.3020 0.7451 0.9333];
 
@@ -39,7 +46,7 @@ taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
 
-% space
+% space parameters
 len = 400;
 xset = linspace(-len/2,len/2,800);
 
@@ -47,7 +54,7 @@ xset = linspace(-len/2,len/2,800);
 icchoice = 4; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
 
 C0high = 0.85;
-C0low = 0.05;%0.05;
+C0low = 0.05;
 M0high = 0.85;
 M0low = 0.05;
 
@@ -63,20 +70,20 @@ initC = stepfun(C0widths, xset);
 % for icchoice = 3
 rnsize = 1; % magnitude of random variation (0-1)
 
-ftest = 0.99*flow; % just below tipping point
+ftest = 0.99*flow; % set fishing pressure to just below tipping point
 
-% time
-t_end = 3*50000;% 6000 then 100000 then 500000
-tset = linspace(0,t_end,2*2500); % 600 then 10000 then 50000
+% time parameters
+t_end = 3*50000;
+tset = linspace(0,t_end,2*2500); 
 
 % peak characteristics
 pkthresh = 0.05; % min prominence that a peak has to have to count
 dthresh = 0.25*len; % threshold distance from edge before a peak gets considered
 b1 = xset(1) + dthresh; % lower boundary for peak consideration
 b2 = xset(end)-dthresh; % upper boundary for peak consideration
-summ10 = 1; % 1 = record peak summaries, 0 = record all peaks
+summ10 = 1; % 1 = record metrics from 3 peaks closest to center of landscape, 0 = record all peaks
 
-% get the indeces of these boundaries (will use these for intervals to take
+% get the indeces of xset corresponding to these boundaries (will use these for intervals to take
 % spatial averages)
 b1i = find(abs(xset-b1)==min(abs(xset-b1)));
 b2i = find(abs(xset-b2)==min(abs(xset-b2)));
@@ -97,7 +104,7 @@ highset = [0.85];
 wset = round([length(xset), length(xset)/2, length(xset)/4, length(xset)/8, length(xset)/16, length(xset)/32, length(xset)/64, length(xset)/96, length(xset)/128, 0]);
 
 % first just do an example simulation to get a plot illustrating the
-% initial conditions
+% set the initial conditions
 C0widths = wset(5);
 initC = stepfun(C0widths, xset); 
 C0high = highset(1);
@@ -105,6 +112,7 @@ C0low = lowset(1);
 M0high = highset(1);
 M0low = lowset(1);
 
+% run the simulations
 [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
     % record initial results
@@ -120,7 +128,7 @@ Cruns = NaN(1, length(xset),length(fset21), length(highset), length(wset));
 Mruns = NaN(1, length(xset),length(fset21), length(highset), length(wset));
 Hruns = NaN(1, length(xset),length(fset21), length(highset), length(wset));
 
-% also record avg abundance at final timepoint for each parameter combination
+% average abundance at final timepoint for each parameter combination
 Cmeans = NaN(length(fset21), length(highset), length(wset));
 Mmeans = NaN(length(fset21), length(highset), length(wset));
 Hmeans = NaN(length(fset21), length(highset), length(wset));
@@ -140,9 +148,9 @@ for k = 1:length(wset) % for each step width
      M0high = highset(j);
      M0low = lowset(j);
 
-    for i = 1:length(fset21) % for each fishing pressure
+    for i = 1:length(fset21) % for each fishing pressure in fset21
 
-        ftest = fset21(i);
+        ftest = fset21(i); % set the fishing pressure
      % run PDE
     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
@@ -172,7 +180,7 @@ CmeansST = Cmeans;
 MmeansST = Mmeans;
 HmeansST = Hmeans;
 
-%% sin IC: vary patch frequency
+%% sin initial conditions: vary patch frequency
 
 icchoice = 5; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
 
@@ -202,7 +210,7 @@ Cruns = NaN(1, length(xset),length(fset21), length(highset), length(wset));
 Mruns = NaN(1, length(xset),length(fset21), length(highset), length(wset));
 Hruns = NaN(1, length(xset),length(fset21), length(highset), length(wset));
 
-% also record avg abundance at final timepoint for each parameter combination
+% average abundance at final timepoint for each parameter combination
 Cmeans = NaN(length(fset21), length(highset), length(wset));
 Mmeans = NaN(length(fset21), length(highset), length(wset));
 Hmeans = NaN(length(fset21), length(highset), length(wset));
@@ -253,16 +261,16 @@ MmeansS = Mmeans;
 HmeansS = Hmeans;
 
 
-%% random
+%% random initial conditions
 
 % initial conditions
 icchoice = 3; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
 
 rnsize = 1; % magnitude of random variation (0-1)
 
-% for icchoice = 5
+
 C0high = 0.5;
-C0low = 0.05;%0.05;
+C0low = 0.05;
 M0high = 0.5;
 M0low = 0.05;
 
@@ -288,7 +296,7 @@ Cruns = NaN(1, length(xset),length(fset21), length(highset), length(wset));
 Mruns = NaN(1, length(xset),length(fset21), length(highset), length(wset));
 Hruns = NaN(1, length(xset),length(fset21), length(highset), length(wset));
 
-% also record avg abundance at final timepoint for each parameter combination
+% average abundance at final timepoint for each parameter combination
 Cmeans = NaN(length(fset21), length(highset), length(wset));
 Mmeans = NaN(length(fset21), length(highset), length(wset));
 Hmeans = NaN(length(fset21), length(highset), length(wset));
@@ -342,12 +350,11 @@ HmeansR = Hmeans;
 %% plot results (Fig. S6)
 % plot results
 
-% note for some reason the code to plot all the panels together only works
+% note for some reason sometimes the code to plot all the panels together only works
 % every other time it is run
 
-fset21 = linspace(0.13, 0.19, 20); 
+fset21 = linspace(0.13, 0.19, 20);  % fishing pressures
 
-%allcols = parula(length(wset));
 
 pgon = polyshape([flow flow fup fup],[2 -1 -1 2]); % bistability region
 
@@ -506,11 +513,5 @@ end
      'MmeansS', 'HmeansS','CmeansR', 'MmeansR', 'HmeansR', 'Mmxall', ...
      'Mmnall', 'Cmxall', 'Cmnall')
 
-
-%% load results
-
-% load('code output/FigS6.mat','CmeansST', 'MmeansST', 'HmeansST', 'CmeansS', ...
-%      'MmeansS', 'HmeansS','CmeansR', 'MmeansR', 'HmeansR', 'Mmxall', ...
-%      'Mmnall', 'Cmxall', 'Cmnall')
 
 

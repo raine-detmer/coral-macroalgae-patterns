@@ -1,22 +1,28 @@
 % README: code for making Figures S15, S18, and S19
 
 % takes about 20 min to run
+% or can load the output here:
+load('code output/FigS15S18S19.mat','Cmeans1','Mmeans1', 'Hmeans1', 'Cmeans2', ...
+    'Mmeans2', 'Hmeans2', 'Cmeans3','Mmeans3', 'Hmeans3', 'Cmeans4', ...
+    'Mmeans4', 'Hmeans4', 'Cmeans5','Mmeans5', 'Hmeans5', 'Cmeans6','Mmeans6', ...
+    'Hmeans6')
+
 
 %% general PDE set up
 
 % PDE parameters
-diffs = [0.05,0.05,0.25,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25,0]; % diffusion rates
 taxisM = 0; 
 taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
 
-% space
+% space parameters
 len = 400;
 xset = linspace(-len/2,len/2,800);
 
-% time
+% time parameters
 t_end = 3*50000;
 tset = linspace(0,t_end,2*2500); 
 
@@ -24,7 +30,7 @@ tset = linspace(0,t_end,2*2500);
 icchoice = 4; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
 
 C0high = 0.85;
-C0low = 0.05;%0.05;
+C0low = 0.05;
 M0high = 0.85;
 M0low = 0.05;
 
@@ -68,26 +74,23 @@ dC = 0.02;
 phiM = 0.01; 
 
 % herbivore parameters
-rH = 0.2;%0.1; % herbivore growth rate
+rH = 0.2; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
 f = 0; % herbivore fishing pressure
 phiH = 0.05; % external recruitment rate
 
 % region of bistability
-% flow0 = 0.1111; % lower tipping point (calculated in Fig2.m)
-% fup0 = 0.1229; % upper tipping point
 flow0 = 0.1674; % lower tipping point (calculated in Fig2.m)
 fup0 = 0.1878; % upper tipping point
 
 %% Briggs model vary taxis
 %  values of fishing pressure
-%fset21 = linspace(0.07, 0.13, 20); 
 fset21 = linspace(0.13, 0.19, 20); 
 
 % values of taxis
-txset = linspace(-1, 1,9);
+txset = linspace(-1, 1,9); % set of values of taxis towards coral
 
-parset = txset; % parameter set 
+parset = txset; % parameter set to iterate over
 
 % holding arrays
 Cruns = NaN(1, length(xset),length(fset21), length(parset));
@@ -100,9 +103,9 @@ Mmeans = NaN(length(fset21), length(parset));
 Hmeans = NaN(length(fset21), length(parset));
 
 tic
-for k = 1:length(parset) % for each step width
+for k = 1:length(parset) % for each element of parset
    
-    taxisC = parset(k);
+    taxisC = parset(k); % set the taxis value
 
     for i = 1:length(fset21) % for each fishing pressure
 
@@ -141,10 +144,9 @@ Hmeans1 = Hmeans;
 
 taxisC = -0.75;
 
-%diffHset = linspace(0.1, 0.5, 5);
-diffHset = linspace(0.15, 0.55, 5);
+diffHset = linspace(0.15, 0.55, 5); % set of herbivore diffusion values
 
-parset = diffHset; % parameter set 
+parset = diffHset; % parameter set to iterate over
 
 % holding arrays
 Cruns = NaN(1, length(xset),length(fset21), length(parset));
@@ -157,7 +159,7 @@ Mmeans = NaN(length(fset21), length(parset));
 Hmeans = NaN(length(fset21), length(parset));
 
 tic
-for k = 1:length(parset) % for each step width
+for k = 1:length(parset) % for each element of parset
    
     diffs = [0.05,0.05,parset(k), 0];
 
@@ -198,11 +200,14 @@ Hmeans2 = Hmeans;
 
 %% plot results (Fig S15)
 
+
+% redefine everything needed for plot here (if using loaded results)
+flow0 = 0.1674; % lower tipping point (calculated in Fig2.m)
+fup0 = 0.1878; % upper tipping point
 fset21 = linspace(0.13, 0.19, 20); 
 txset = linspace(-1, 1,9);
 diffHset = linspace(0.15, 0.55, 5);
 
-% fset = linspace(0.05, 0.15, 100);
 
 parset = txset; 
 
@@ -298,22 +303,21 @@ dH = 0.1; % dens dep herbivore mortality
 %f = 0; % herbivore fishing pressure
 phiH = 0.05; % herbivore external recruitment rate
 
+% M and C external recruitment
 alpha = 0.01; % 0.01
 beta = 0.01;
 
 % set of fishing values
-%fset = linspace(0.165, 0.18, 100);
 fset = linspace(0.3, 0.39, 150);
 
 % holding vector of eq values
-Cstars = NaN(length(fset), 4);%not sure how many pos, real eq...maybe run a single 
-% value in region of bistability to check how many solutions there were?
+Cstars = NaN(length(fset), 4);
 Mstars = NaN(length(fset), 4);
 
 Mistars = NaN(length(fset), 4);
 Mvstars = NaN(length(fset), 4);
 
-for i = 1:length(fset)%for each element of gset
+for i = 1:length(fset)%for each element of fset
     % get the eqns
     fi = fset(i);
 
@@ -352,18 +356,18 @@ Mlows = vertcat(Mstars(1:bend, 3), Mstars(bend+1:end, 1));
 %% Mumby taxis simulations
 
 % reset defaults
-diffs = [0.05,0.05,0.25,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25,0]; % diffusion rates 
 taxisM = 0; 
-taxisC = -0.75;%0; % taxis rate toward coral
+taxisC = -0.75;% taxis rate toward coral
 taxisT = 0;
 
 %  values of fishing pressure
-fset21 = linspace(0.2, 0.4, 20); % bistability region is ~0.3157 to 0.3894
+fset21 = linspace(0.2, 0.4, 20); 
 
 % values of coral taxis
 txset = linspace(-1, 1,9);
 
-parset = txset; % parameter set 
+parset = txset; % parameter set to iterate over
 
 
 
@@ -378,7 +382,7 @@ Mmeans = NaN(length(fset21), length(parset));
 Hmeans = NaN(length(fset21), length(parset));
 
 tic
-for k = 1:length(parset) % for each step width
+for k = 1:length(parset) % for each element of parset
    
     taxisC = parset(k);
 
@@ -421,14 +425,14 @@ Hmeans3 = Hmeans;
 
 
 % reset defaults
-diffs = [0.05,0.05,0.25,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25,0]; % diffusion rates 
 taxisM = 0; 
-taxisC = -0.75;%0; % taxis rate toward coral
+taxisC = -0.75;% taxis rate toward coral
 taxisT = 0;
 
 diffHset = linspace(0.15, 0.55, 5);
 
-parset = diffHset; % parameter set 
+parset = diffHset; % parameter set to iterate over
 
 % holding arrays
 Cruns = NaN(1, length(xset),length(fset21), length(parset));
@@ -441,7 +445,7 @@ Mmeans = NaN(length(fset21), length(parset));
 Hmeans = NaN(length(fset21), length(parset));
 
 tic
-for k = 1:length(parset) % for each step width
+for k = 1:length(parset) % for each element of parset
    
     diffs = [0.05,0.05,parset(k), 0];
 
@@ -481,9 +485,9 @@ Hmeans4 = Hmeans;
 
 %% plot taxis and diffusion together
 %  values of fishing pressure
-fset21 = linspace(0.2, 0.4, 20); % bistability region is ~0.3157 to 0.3894
+fset21 = linspace(0.2, 0.4, 20); 
 
-% values of coral taxis
+% values of taxis towards coral
 txset = linspace(-1, 1,9);
 % values of herbivore diffusion
 diffHset = linspace(0.15, 0.55, 5);
@@ -577,29 +581,30 @@ gz = 1; % grazing rate
 h = 2; % half-saturation constant for herbivore grazing
 
 % herbivore growth rate and den dep mortality: carrying capacity = rH/dH
-rH = 0.2;%0.1; % herbivore growth rate
+rH = 0.2; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
 %f = 0; % herbivore fishing pressure
 phiH = 0.05; % external recruitment
 
-alpha = 0.01;% 0.025
+% M and C external recruitment
+alpha = 0.01;
 beta = 0.01;
 
-%fset = linspace(0.125, 0.15, 100); % bistable region is around 0.145
+% set of fishing pressures
 fset = linspace(0.18, 0.25, 100); % bistable region is around 0.24
 
 % holding vector of eq values
-Cstars = NaN(length(fset), 4);%not sure how many pos, real eq...maybe run a single 
-% value in region of bistability to check how many solutions there were?
+Cstars = NaN(length(fset), 4);
 Mstars = NaN(length(fset), 4);
 
 Mistars = NaN(length(fset), 4);
 Mvstars = NaN(length(fset), 4);
 
-for i = 1:length(fset)%for each element of gset
-    % get the eqns
+for i = 1:length(fset)%for each element of fset
+    % set the fishing pressure
     fi = fset(i);
 
+    % define the equations
     eq1i = a*M*C-gz*H*M/(gz*h*M + 1)+gamma*M*(1-M-C)+alpha*(1-M-C) == 0;
     eq2i = r*(1-M-C)*C-d*C-a*M*C+beta*(1-M-C) ==0;
     eq3i = phiH + rH*H-dH*H*H-fi*H ==0;
@@ -633,15 +638,15 @@ Mlows = vertcat(Mstars(1:bend, 3), Mstars(bend+1:end, 1));
 %% van de Leemput: coral taxis 
 
 %  values of fishing pressure
-fset21 = linspace(0.12, 0.25, 20); % bistability region is ~ 0.1984 to 0.2422
+fset21 = linspace(0.12, 0.25, 20); 
 
-% values of coral taxis
+% values of taxis towards coral
 txset = linspace(-1, 1,9);
 
 % reset defaults
-diffs = [0.05,0.05,0.25,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25,0]; % diffusion rates 
 taxisM = 0; 
-taxisC = -0.75;%0; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 parset = txset; % parameter set 
@@ -657,7 +662,7 @@ Mmeans = NaN(length(fset21), length(parset));
 Hmeans = NaN(length(fset21), length(parset));
 
 tic
-for k = 1:length(parset) % for each step width
+for k = 1:length(parset) % for each element of parset
    
     taxisC = parset(k);
 
@@ -700,12 +705,12 @@ Hmeans5 = Hmeans;
 
 
 % reset defaults
-diffs = [0.05,0.05,0.25,0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25,0]; % diffusion rates
 taxisM = 0; 
 taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
-diffHset = linspace(0.15, 0.55, 5);
+diffHset = linspace(0.15, 0.55, 5); % diffusion values
 
 parset = diffHset; % parameter set 
 
@@ -853,11 +858,4 @@ save('code output/FigS15S18S19.mat','Cmeans1','Mmeans1', 'Hmeans1', 'Cmeans2', .
     'Mmeans4', 'Hmeans4', 'Cmeans5','Mmeans5', 'Hmeans5', 'Cmeans6','Mmeans6', ...
     'Hmeans6')
 
-
-%% load results
-
-% load('code output/FigS15S18S19.mat','Cmeans1','Mmeans1', 'Hmeans1', 'Cmeans2', ...
-%     'Mmeans2', 'Hmeans2', 'Cmeans3','Mmeans3', 'Hmeans3', 'Cmeans4', ...
-%     'Mmeans4', 'Hmeans4', 'Cmeans5','Mmeans5', 'Hmeans5', 'Cmeans6','Mmeans6', ...
-%     'Hmeans6')
 

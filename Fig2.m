@@ -2,10 +2,17 @@
 
 % takes about an hour and a half to run
 
+% or can load the pre-run results to just plot the figure:
+
+load('code output/Fig2.mat','flims1', 'flims2','mntx1')
+
+
 %% get the lower boundary of bistability
 
+% find the lower boundary of the region of bistability predicted by the
+% nonspatial model
 
-% define the symbols
+% define the symbols (state variables)
 syms Mi C H Mv
 
 % define parameters
@@ -22,21 +29,19 @@ dC = 0.02;
 phiM = 0.01; 
 
 % herbivore parameters
-rH = 0.2;%0.1; % herbivore growth rate
+rH = 0.2; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
 f = 0; % herbivore fishing pressure
 phiH = 0.05; % herbivore external recruitment rate
 
-% calculate get the tipping point more precisely
-% set of fishing values
-fset2 = linspace(0.165, 0.169, 50);
+fset2 = linspace(0.165, 0.169, 50); % set of fishing pressures close to the lower tipping point
 
-% holding vector of eq values
+% holding matrix to store equilibrium values
 Cstars2 = NaN(length(fset2), 4);
 
-for i = 1:length(fset2)%for each element of gset
-    % get the fishing pressure
-    fi = fset2(i);
+for i = 1:length(fset2) % for each element of fset2
+    
+    fi = fset2(i); % set fishing pressure equal to the ith element of fset2
 
     % solve the equations
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
@@ -44,28 +49,30 @@ for i = 1:length(fset2)%for each element of gset
     eq3i = phiH + rH*H-dH*H*H-fi*H ==0; %H
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
-    soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real
+    soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real equilibria
     % store the values of the eq C cover
     Cstars2(i, 1:length(soli.C)) = sort(soli.C); % sort the equilibria from lowest to highest (or NA)
 end
 
 % process results
 
-% get the tipping point
-bend2 = find(isnan(Cstars2(:, 3))==0, 1, 'last' );% end of bistability region
+% get the lower tipping point
+% bend2 = find(isnan(Cstars2(:, 3))==0, 1, 'last' );% end of bistability region
 bstart2 = find(isnan(Cstars2(:, 3))==0, 1, 'first' );% start of bistability region
 
 %% get the upper boundary of bistability
 
-% set of fishing values
-fset3 = linspace(0.185, 0.189, 50);
+% find the upper boundary of the region of bistability predicted by the
+% nonspatial model
+
+fset3 = linspace(0.185, 0.189, 50); % set of fishing pressures close to the upper tipping point
 
 % holding vector of eq values
 Cstars3 = NaN(length(fset3), 4);
 
-for i = 1:length(fset3)%for each element of gset
-    % get the fishing pressure
-    fi = fset3(i);
+for i = 1:length(fset3)% for each element of fset3
+  
+    fi = fset3(i); % set the fishing pressure equal to the ith element of fset3
 
     % solve the equations
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
@@ -80,9 +87,9 @@ end
 
 % process results
 
-% get the tipping point
+% get the upper tipping point
 bend3 = find(isnan(Cstars3(:, 3))==0, 1, 'last' );% end of bistability region
-bstart3 = find(isnan(Cstars3(:, 3))==0, 1, 'first' );% start of bistability region
+% bstart3 = find(isnan(Cstars3(:, 3))==0, 1, 'first' );% start of bistability region
 
 %% store these fishing pressures
 flow = fset2(bstart2); % lower boundary of bistability
@@ -91,25 +98,19 @@ fup = fset3(bend3); % upper boundary of bistability
 %% PDE parameter set up
 
 % PDE parameters
-diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
-taxisM = 0; 
-taxisC = -0.75; % taxis rate toward coral
-taxisT = 0;
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates of MI, C, H, and Mv
+taxisM = 0; % herbivore taxis rate toward macroalgae
+taxisC = -0.75; % herbivore taxis rate toward coral
+taxisT = 0; % herbivore taxis rate toward turf/free space
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
 
 
-% space
+% space parameters
 len = 400;
 xset = linspace(-len/2,len/2,800);
 
-% time
-% default for equilibration
-%t_end = 3*50000;
-%tset = linspace(0,t_end,2*2500); 
-
-% since here we just care about whether there are patterns and not whether
-% they have fully equilibrated, reduce the simulation length a bit
+% time parameters
 t_end = 50000;
 tset = linspace(0,t_end,2500); 
 
@@ -117,18 +118,18 @@ tset = linspace(0,t_end,2500);
 icchoice = 4; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
 
 C0high = 0.85;
-C0low = 0.05;%0.05;
+C0low = 0.05;
 M0high = 0.85;
 M0low = 0.05;
 
-% for icchoice = 3
+% for icchoice = 3 (random)
 rnsize = 1; % magnitude of random variation (0-1)
 
-% for icchoice = 4
+% for icchoice = 4 (step function)
 C0widths = round(length(xset)/64);  % patch widths
 initC = stepfun(C0widths, xset); 
 
-% for icchoice = 5
+% for icchoice = 5 (sin function)
  ampC0 = (C0high-C0low)/2;
  ampM0 = (M0high-M0low)/2;
  period0 = 0.4;
@@ -139,19 +140,14 @@ dthresh = 0.25*len; % threshold distance from edge before a peak gets considered
 b1 = xset(1) + dthresh; % lower boundary for peak consideration
 b2 = xset(end)-dthresh; % upper boundary for peak consideration
 
-summ10 = 1; % 1 = record peak summaries, 0 = record all peaks
-
-% get the indeces of these boundaries (will use these for intervals to take
+% get the indeces of xset corresponding to these boundaries (will use these for intervals to take
 % spatial averages)
-%bend = find(isnan(Cstars(:, 3))==0, 1, 'last' );% end of bistability region
 b1i = find(abs(xset-b1)==min(abs(xset-b1)));
 b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
+summ10 = 1; % 1 = record metrics of middle 3 peaks, 0 = record all peaks
 
-% taxis and diffusion sets
-%txset = linspace(0, 1, 9);
-%diffHset = linspace(0.05, 1, 9); % don't go lower than 0.05 bc that's the diff values for C and M
-
+% taxis and diffusion parameter sets to iterate over
 txset = linspace(0, 1.25, 10);
 diffHset = linspace(0.05, 1.25, 10); % don't go lower than 0.05 bc that's the diff values for C and M
 
@@ -162,7 +158,7 @@ pkN = 2; % number of peaks (in M or C) needed to count as patterns
 
 ftest1 = fset2(bstart2)-0.001*fset2(bstart2); % for initial test of patterns
 
-% set of initial conditions
+% set of initial conditions to iterate over
 parset2 = [round(length(xset)/2), round(length(xset)/64)];
 
 % set of fishing pressures in the region of bistability
@@ -170,26 +166,29 @@ birange = flip(ftest1:0.0002:fset3(bend3));
 
 %% get the range of fishing pressures with patterns
 
+% use a binary search algorithm to calculate the range of fishing pressures
+% over which patterns occur as a function of taxis towards coral
 
-% reset defaults
-diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
-taxisC = -0.75;%0; % taxis rate toward coral
+% reset default diffusion and taxis values
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates 
+taxisC = -0.75; % taxis rate toward coral
 
 parset = txset; % parameter set 
 
-% holding vector for limits
-flims = NaN(2, length(parset), length(parset2)); % 1 = lower, 2 = upper, middle = taxis, third = initial conditions
+% holding array for fishing pressure limits
+flims = NaN(2, length(parset), length(parset2)); % 1 = lower limit, 2 = upper limit, middle = taxis, third = initial conditions
 
 tic
-for z = 1:length(parset2)
+for z = 1:length(parset2) % for each element from 1 to length of parset2 (initial conditions)
 
+   % set the initial conditions
  C0widths = parset2(z);  % step widths
 initC = stepfun(C0widths, xset); 
 
 
-for k = 1:length(parset) % for each step width
+for k = 1:length(parset) % for each element from 1 to length parset (set of taxis values)
    
-    taxisC = -1*parset(k);
+    taxisC = -1*parset(k); % set the taxis value
   
    % first test if there are patterns just past the tipping point
     ftest = ftest1;
@@ -203,8 +202,11 @@ for k = 1:length(parset) % for each step width
      npks1 = mxpks;
 
 if npks1 >= pkN % if there was at least one patch, calculate region of fishing pressures over which patches occur       
-             % for lower boundary
+             % start with the lower boundary (lowest fishing pressure for
+             % which there are patterns)
              if k == 1 || isnan(flims(1,k-1,z)) % if this is the first taxis level with patterns
+             
+             % search from 0 to ftest1
              fstart = 0;
              fend = ftest1;
 
@@ -213,9 +215,9 @@ if npks1 >= pkN % if there was at least one patch, calculate region of fishing p
              fend = flims(1,k-1,z) + errortol;
              end
 
-             while abs(fend-fstart) >= errortol
+             while abs(fend-fstart) >= errortol % while the difference between fend and fstart is greater than the error tolerance
 
-    fmid = (fend + fstart)/2; % calculate the fishing pressure
+    fmid = (fend + fstart)/2; % calculate the fishing pressure halfway between fstart and fend
     ftest = fmid;
     % run the pde with this fishing pressure
     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
@@ -234,12 +236,13 @@ if npks1 >= pkN % if there was at least one patch, calculate region of fishing p
 
              end
 
-             flims(1,k,z) = fmid; % store this
+             flims(1,k,z) = fmid; % store this fishing pressure
             % pkdiff(1,k,z) = npks0-npks; % to check if there are peaks where C < M
 
 
-   % now do the upper bound
-   % for upper bifurcation boundary
+   % now do the upper bound (highest fishing pressure for which there are
+   % still patterns)
+   
 fstart = ftest1;
 fend = 1.05*fup;
 
@@ -274,6 +277,7 @@ end
 if npks1 < pkN % if there weren't peaks at the test point
     bbend = length(birange);
     % check the whole range of bistability to find turing before tipping
+    % occurs
     for bb = 1:length(birange)
         ftest = birange(bb);
     % run the pde with this fishing pressure
@@ -332,7 +336,7 @@ end
 toc % 3000 seconds
 
 
-flims1 = flims;
+flims1 = flims; % store the output
 
 % test loop breaking
 % for kk = 1:10
@@ -348,9 +352,13 @@ flims1 = flims;
 
 %% repeat for diffusion
 
+% use a binary search algorithm to calculate the range of fishing pressures
+% over which patterns occur as a function of herbivore diffusion rate
+
+
 % reset defaults
-diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
-taxisC = -0.75;%0; % taxis rate toward coral
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates 
+taxisC = -0.75; % taxis rate toward coral
 
 parset = diffHset; % parameter set 
 
@@ -358,15 +366,16 @@ parset = diffHset; % parameter set
 flims = NaN(2, length(parset), length(parset2)); % 1 = lower, 2 = upper, middle = taxis, third = initial conditions
 
 tic
-for z = 1:length(parset2)
+for z = 1:length(parset2) % for each element from 1 to length parset2 (initial conditions)
 
+   % set the initial conditions
  C0widths = parset2(z);  % step widths
 initC = stepfun(C0widths, xset); 
 
 
-for k = 1:length(parset) % for each step width
+for k = 1:length(parset) % for each element in parset (herbivore diffusion values)
    
-     diffs = [0.05,0.05,parset(k), 0];
+     diffs = [0.05,0.05,parset(k), 0];  % set the herbivore diffusion rate
    
    % first test if there are patterns just past the tipping point
     ftest = ftest1;
@@ -511,7 +520,7 @@ end
 
 toc % 1310 seconds
 
-flims2 = flims;
+flims2 = flims; % store the output
 
 
 %% taxis and diffusion operating diagrams
@@ -522,6 +531,7 @@ flims2 = flims;
 % there are still patterns and do this for large and small initial patch
 % widths 
 
+% set of initial conditions
 parset2 = [round(length(xset)/2), round(length(xset)/64)];
 %parset2 = round(length(xset)/2);
 
@@ -529,17 +539,13 @@ parset2 = [round(length(xset)/2), round(length(xset)/64)];
 
 % reset defaults
 diffs = [0.05,0.05,0.25, 0]; % diffusion rates 
-taxisC = -0.75;%0; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 
-
-%ftest = fset2(bstart2)-0.005*fset2(bstart2);
+% fishing pressure
 ftest = fset2(bstart2)-0.01*fset2(bstart2);
 
-% diffHset3 = linspace(0.05, 1.5, 10);
-% make sure 1 (max value of diffHset) and 0.2 (default) are included
-% diffHset3 = sort([diffHset3, 0.2, 1]);
 
-diffHset3 = diffHset; % use same as above
+diffHset3 = diffHset; % set of herbivore diffusion values to iterate over
 %diffHset3 = sort([diffHset3, 0.25]);
 
 parset = diffHset3; % parameter set 
@@ -547,37 +553,34 @@ parset = diffHset3; % parameter set
 % holding arrays
 mntx = NaN(1, length(parset), length(parset2)); % min value of taxis for which there are patterns
 
-%errortol = 0.001; % use the same error tolerance as for the fishing
-%pressure range diagrams
+%errortol = 0.001; % use the same error tolerance as above
 
 tic
-for z = 1:length(parset2)
+for z = 1:length(parset2) % for each element in parset2
 
+% set initial conditions
  C0widths = parset2(z);  % step widths
 initC = stepfun(C0widths, xset); 
 
 
-for k = 1:length(parset) % for each step width
+for k = 1:length(parset) % for each element in parset (herbivore diffusion rates)
 
-    diffs = [0.05,0.05,parset(k), 0];
+    diffs = [0.05,0.05,parset(k), 0]; % set the herbivore diffusion rate
 
         if k == 1 || isnan(mntx(1,k-1,z))% if this is the first diff level 
-        txstart = 0;
-        %txend = 5*parset(k);
-        txend = -5*parset(k);
+        txstart = 0; % starting taxis value for search
+        txend = -5*parset(k); % ending taxis value for search
 
         else % know that as diff increases, the lower boundary should get higher so can make the initial lower bound higher
-       % txstart = max(mntx(1,k-1,z) - 10*errortol,0); % mntx values are positive
-       % txend = 5*parset(k);
+     
         txstart = min(mntx(1,k-1,z) + 10*errortol,0); % mntx values are neg
-        txend = -5*parset(k);
+        txend = -5*parset(k); % ending taxis value for search
         end
 
 while abs(txend-txstart) >= errortol
 
-   % taxisC = -1*(txend + txstart)/2; % calculate the value of taxis in the middle
+   
     taxisC = (txend + txstart)/2; % calculate the value of taxis in the middle
-    %taxisC
    
     % run the pde with this level of taxis
     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
@@ -591,10 +594,10 @@ while abs(txend-txstart) >= errortol
       %npks
 
     if(npks >= pkN) % if there are peaks
-       % txend = -1*taxisC; % taxis was too high, so make the midpoint the new upper bound
+
         txend = taxisC; % taxis was too high, so make the midpoint the new upper bound
     else % if there weren't any peaks
-         %txstart = -1*taxisC; % taxis was too low, so make the midpoint the new lower bound
+         
          txstart = taxisC; % taxis was too low, so make the midpoint the new lower bound
     end
     
@@ -612,7 +615,7 @@ toc % 750 seconds
 mntx1 = mntx;
 
  beep on 
- beep
+ beep % beep when simulation is done runnning
 
 
 %% test peaks
@@ -631,26 +634,18 @@ mntx1 = mntx;
 flow = 0.1674; % lower tipping point (calculated above)
 fup = 0.1878; % upper tipping point
 
-%fref = fset2(bstart2)-0.005*fset2(bstart2);
-fref = fset2(bstart2)-0.01*fset2(bstart2);
+fref = fset2(bstart2)-0.01*fset2(bstart2); % fishing pressure used in operating diagram
 
+% plot colors for each set of initial conditions
 C1 = [0.0118    0.6588    0.6588];
 C2 = [0.1412    0.0824    0.9294];
 
-%txset = linspace(0, 1, 9);
-%diffHset = linspace(0.05, 1, 9); % don't go lower than 0.05 bc that's the diff values for C and M
-
+% redefine the parameter sets here so the figure can be made without
+% running all the above code chunks (if using the loaded output)
 txset = linspace(0, 1.25, 10);
 diffHset = linspace(0.05, 1.25, 10); % don't go lower than 0.05 bc that's the diff values for C and M
 
-
-%diffHset3 = linspace(0.05, 1.5, 10);
-%diffHset3 = sort([diffHset3, 0.2, 1]);
-
 diffHset3 = diffHset; % use same as above
-% diffHset3 = sort([diffHset3, 0.25]);
-
-
 
 mntx = mntx1;
 
@@ -671,7 +666,6 @@ btwx = [diffHset3, fliplr(diffHset3)];
 btwy2 = [-mntx(1, :, 1), fliplr(fillup)];
 plot(ax1, diffHset3, -mntx(1, :, 1),'Color', C1)
 ylim([min(diffHset3) max(diffHset3)])
-%ylim([0 1.2])
 xlim([min(diffHset3) max(diffHset3)])
 %xlabel('Herbivore diffusion rate (m^2 yr^{-1})','FontSize',19)
 %ylabel('Taxis towards coral (m^2 C^{-1} yr^{-1})','FontSize',19)
@@ -695,7 +689,6 @@ hold on
 plot(diffHset3, -mntx(1, :, 1),'Color', C1,'LineWidth', 2.5)
 plot(diffHset3, -mntx(1, :, 2),'Color', C2,'LineWidth', 2.5)
 lnCol = [0.9098    0.0745    0.0745];
-%lnCol = [0 0 0];
 line([0.25 0.25], [diffHset(1)*1.4 txset(end)], 'Color', lnCol, 'LineStyle', '-', 'LineWidth', 1)
 line([diffHset(1)*1.4 diffHset(end)], [0.75 0.75], 'Color', lnCol, 'LineStyle', '-', 'LineWidth', 1)
 % add markers
@@ -724,14 +717,10 @@ btwy = [flims(1,4:end,1), fliplr(flims(2,4:end,1))];
 % polygon for region of bistability
 pgon = polyshape([2 -1 -1 2], [flow flow fup fup]);
 plot(ax2, txset, squeeze(flims(1,:,1)),'Color',C1, "LineStyle","-", 'LineWidth', 2.5)
-%xlim([min(txset) max(txset)])
 xlim([min(diffHset) max(diffHset)])
-%xlim([0 max(txset)])
 ylim([0.08 1.1*fup])
-%text(0.02, 0.13, 'b)', 'Color', [0 0 0],'FontSize', 16)
 text(0.07, 0.198, 'b)', 'Color', [0 0 0],'FontSize', 16)
 hold off
-%text(0.01, 0.119, 'Bistable', 'Color', 'black','FontSize', 14)
 text(0.08, 0.18, 'Bistable', 'Color', 'black','FontSize', 14)
 hold on
 ylabel('Fishing pressure','FontSize',19)
@@ -800,51 +789,37 @@ hold off
 
 save('code output/Fig2.mat','flims1', 'flims2','mntx1')
 
-%% load everything
-%clear flims1
-% load everything
-
-
-%load('code output/Fig2.mat','flims1', 'flims2','mntx1')
-
-%load('code output/Fig2.mat','flims1', 'flims2')
-
-%load('code output/Fig3.mat','flims1', 'flims2','mntx1')
-% load one thing
-%load('code output/Fig3.mat','mntx1')
 
 %% test bounds
 
-t_end = 50000;
-tset = linspace(0,t_end,2500); 
-
-
-C0widths = parset2(2);  % step widths
-initC = stepfun(C0widths, xset); 
-
-ii = 2;
-
-%taxisC = mntx1(1,ii,2) - errortol;
-%diffs = [0.05,0.05,diffHset3(ii), 0];
-
-taxisC = -0.75;
-
-diffs = [0.05,0.05,diffHset3(10), 0];
-
-% ftest1 = fset2(bstart2)-0.001*fset2(bstart2); % for initial test of patterns
+% t_end = 50000;
+% tset = linspace(0,t_end,2500); 
+% 
+% 
+% C0widths = parset2(2);  % step widths
+% initC = stepfun(C0widths, xset); 
+% 
+% ii = 2;
+% 
+% %taxisC = mntx1(1,ii,2) - errortol;
+% %diffs = [0.05,0.05,diffHset3(ii), 0];
+% 
+% taxisC = -0.75;
+% 
+% diffs = [0.05,0.05,diffHset3(10), 0];
+% 
+% % ftest1 = fset2(bstart2)-0.001*fset2(bstart2); % for initial test of patterns
 % ftest = fset2(bstart2)-0.005*fset2(bstart2);
-ftest = fset2(bstart2)-0.005*fset2(bstart2);
-
-[soltest] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
-
-
- [mxpkstest] = peakfun2(soltest(end, :, 2), solij(end, :, 1)+ solij(end,:,4), xset, pkthresh, b1, b2);
-
-figure(2)
-plot(xset, soltest(end,:,2), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
-hold on 
-plot(xset, soltest(end,:,1) + soltest(end,:,4), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
-hold off
-
-mxpkstest
+% 
+% [soltest] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
+% 
+%  [mxpkstest] = peakfun2(soltest(end, :, 2), solij(end, :, 1)+ solij(end,:,4), xset, pkthresh, b1, b2);
+% 
+% figure(2)
+% plot(xset, soltest(end,:,2), 'LineWidth',2, 'Color', [0.3020 0.7451 0.9333])
+% hold on 
+% plot(xset, soltest(end,:,1) + soltest(end,:,4), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
+% hold off
+% 
+% mxpkstest
 

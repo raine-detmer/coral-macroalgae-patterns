@@ -1,18 +1,10 @@
 % README: function for simulating the PDE version of the Briggs model with
-% constant herbivores
+% constant total herbivore abundance
 
 
 function[sol] = BriggsHPDE(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, ...
     dH, f, diff,taxisM,taxisC, taxisT, diric,x,t,initC,Clow, Chigh, Mlow, Mhigh, rnsize, ...
     ampC0, ampM0, period0,icchoice, phiH)
-
-% initial conditions for sin wave case
-%if icchoice ==5
-%global Mi00; global C00; global H00; global Mv00;
-%Mi00 = (ampM0*sin(period0*x-pi) + Mhigh)*0.95;
-%C00 = ampC0*sin(period0*x) + Chigh;
-%Mv00 = (ampM0*sin(period0*x-pi) + Mhigh)*0.05;
-%end
 
 % Find solution by simulating with PDE solver
 sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
@@ -49,30 +41,11 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
         
         %RANDOMIZED
         if icchoice == 3
-        %Mi = .5*rand;
-        %y0 = [Mi,.8-Mi,k*(1+(2*rand-1))]'; %randomize macroalgae and fish
-        %y0 = [Mi,0.8-Mi,k, 0]'; %randomize macroalgae only
-        % * rand generates random number between 0 and 1, multiple this by
-        % 0.5 so max initial M is 0.5, say 0.2 of habitat is initially
-        % turf, so initial C is 0.8-M. Initialize fish at carrying capacity
-        % everywhere
-
-        % update: let M initially be higher
-       % Mi = .9*rand; % initial invul macroalgal cover
-       % Cprop = rand; % proportion of remaining cover that is coral
-        % then say remaining cover that isn't Mi or C is 50% vuln M and 50%
-        % turf
-       % y0 = [Mi,(1-Mi)*Cprop,k, (1-Mi-(1-Mi)*Cprop)*0.5]'; % Minv, C, H, Mvuln
-
-        % update: make initial values and magnitude of randomness function
-        % arguments
+        
         Mi0 = Mhigh-Mhigh*rand*rnsize; % initial invul macroalgal cover
         C0 = Chigh-Chigh*rand*rnsize; % initial coral cover
-        % then say remaining cover that isn't Mi or C is 50% vuln M and 50%
-        % turf
-        %y0 = [Mi0,C0,k, (1-Mi0-C0)*0.5]'; % Minv, C, H, Mvuln
-        % update: say that Mi is total macroalgae, and 95% of this is
-        % invuln
+        % then say Mi0 is total macroalgae, and 95% of this is
+        % invuln and 5% is vulnerable
         y0 = [Mi0*0.95,C0,k, Mi0*0.05]'; % Minv, C, H, Mvuln
 
         % make sure Mhigh and Chigh don't sum to greater than 1 when using
@@ -83,12 +56,10 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
        % Specific step wise distribution
         if icchoice == 4
         if ismember(xi, initC) ==1 % if xi is in initC
-            %y0 = [0.05, 0.8, k]'; % high C
-            %y0 = [Mlow, Chigh, k, 0]'; % high C
+            
             y0 = [Mlow*0.95, Chigh, k, Mlow*0.05]'; % high C
         else
-            %y0 = [0.8, 0.05, k]'; % high M
-            %y0 = [Mhigh, Clow, k, 0]'; % high M
+            
             y0 = [Mhigh*0.95, Clow, k, Mhigh*0.05]'; % high M
         end
         end
@@ -96,24 +67,12 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
         % sine wave
         if icchoice ==5
 
-            %xpos = xi;
-            %C0i = ampC0*sin(period0*xpos) + Chigh;
-            %M0i = ampM0*sin(period0*xpos-pi) + Mhigh;
 
             C0i = ampC0*sin(period0*xi) + Chigh;
             M0i = ampM0*sin(period0*xi-pi) + Mhigh;
             y0 = [M0i*0.95, C0i, k, M0i*0.05]'; % need to transpose!!
 
-            % NOTE: amp0/2 + C0high + M0high-amp0/2 (high point + low
-            % point) need to add up to <=1, so need C0high + M0high <=1
-            %global Mi00; global C00; global H00; global Mv00;
-            %C0i = C00(x==xi);
-            %M0i = Mi00(x==xi);
-            %M0v = Mv00(x==xi);
-            %H0 = k;
-
-            %y0 = [M0i, C0i, H0, M0v]'; % REMEMBER NEED TRANSPOSE (') to make this a column, could also separate with semicolons instead of commas
-
+            
         end
         
     end

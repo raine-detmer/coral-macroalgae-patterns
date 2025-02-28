@@ -2,7 +2,14 @@
 
 % takes about 20 min to run
 
+% or can load the output of the simulations:
+load('code output/FigS7.mat','CmeansHst', 'MmeansHst', 'HmeansHst', 'CmeansHst2', ...
+    'MmeansHst2', 'HmeansHst2', 'CmeansHst3','MmeansHst3', 'HmeansHst3')
+
+
 %% set up
+
+% plot colors
 Mcol = [0.4667 0.6745 0.1882];
 Ccol = [0.3020 0.7451 0.9333];
 Hcol = [0.9294 0.6941 0.1255];
@@ -40,6 +47,7 @@ taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
 
+% space parameters
 len = 400;
 xset = linspace(-len/2,len/2,800);
 
@@ -64,18 +72,18 @@ initC = stepfun(C0widths, xset);
 % for icchoice = 3
 rnsize = 1; % magnitude of random variation (0-1)
 
-ftest = 0.99*flow; % just below tipping point
+ftest = 0.99*flow; % set fishing pressure to just below tipping point
 
-% time
-t_end = 3*50000;% 6000 then 100000 then 500000
-tset = linspace(0,t_end,2*2500); % 600 then 10000 then 50000
+% time parameters
+t_end = 3*50000;
+tset = linspace(0,t_end,2*2500); 
 
 % peak characteristics
 pkthresh = 0.05; % min prominence that a peak has to have to count
 dthresh = 0.25*len; % threshold distance from edge before a peak gets considered
 b1 = xset(1) + dthresh; % lower boundary for peak consideration
 b2 = xset(end)-dthresh; % upper boundary for peak consideration
-summ10 = 1; % 1 = record peak summaries, 0 = record all peaks
+summ10 = 1; % 1 = record metrics from 3 peaks closest to center of landscape, 0 = record all peaks
 
 % get the indeces of these boundaries (will use these for intervals to take
 % spatial averages)
@@ -97,7 +105,7 @@ diffs = [0.05, 0.05, 0.25, 0];
 % values of fishing pressure
 fset21 = linspace(0.13, 0.19, 20); 
 
-ftest = fset21(end);
+ftest = fset21(end); % just running this simulation to look at initial conditions so f doesn't matter
 
 % low and high cover inside and outside patches
 lowset = [0.05];
@@ -150,7 +158,7 @@ Cruns = NaN(1, length(xset),length(fset21), length(highset), length(wset));
 Mruns = NaN(1, length(xset),length(fset21), length(highset), length(wset));
 Hruns = NaN(1, length(xset),length(fset21), length(highset), length(wset));
 
-% also record avg abundance at final timepoint for each parameter combination
+% average abundance at final timepoint for each parameter combination
 Cmeans = NaN(length(fset21), length(highset), length(wset));
 Mmeans = NaN(length(fset21), length(highset), length(wset));
 Hmeans = NaN(length(fset21), length(highset), length(wset));
@@ -287,7 +295,6 @@ end
 toc % took 271 seconds
 
 
-% NEW SECTION
 % save these results
 CrunsHst2 = Cruns;
 MrunsHst2 = Mruns;
@@ -507,13 +514,6 @@ title(lgd,{'Initial patch width';'(fraction total space)'})
 
 save('code output/FigS7.mat','CmeansHst', 'MmeansHst', 'HmeansHst', 'CmeansHst2', ...
     'MmeansHst2', 'HmeansHst2', 'CmeansHst3','MmeansHst3', 'HmeansHst3')
-
-
-
-%% load results
-
-% load('code output/FigS7.mat','CmeansHst', 'MmeansHst', 'HmeansHst', 'CmeansHst2', ...
-%     'MmeansHst2', 'HmeansHst2', 'CmeansHst3','MmeansHst3', 'HmeansHst3')
 
 
 

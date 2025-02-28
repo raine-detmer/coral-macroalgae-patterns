@@ -57,31 +57,24 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
         %RANDOMIZED
         if icchoice == 3
        
-        % update: make initial values and magnitude of randomness function
-        % arguments
+       
         Mi0 = Mhigh-Mhigh*rand*rnsize; % initial invul macroalgal cover
         C0 = Chigh-Chigh*rand*rnsize; % initial coral cover
-        % then say remaining cover that isn't Mi or C is 50% vuln M and 50%
-        % turf
-        %y0 = [Mi0,C0,k, (1-Mi0-C0)*0.5]'; % Minv, C, H, Mvuln
-        % update: say that Mi is total macroalgae, and 95% of this is
-        % invuln
+        
         y0 = [Mi0*0.95,C0,H0, Mi0*0.05]'; % Minv, C, H, Mvuln
 
         % make sure Mhigh and Chigh don't sum to greater than 1 when using
-        % random
+        % random initial conditions
 
         end
         
        % Specific step wise distribution
         if icchoice == 4
         if ismember(xi, initC) ==1 % if xi is in initC
-            %y0 = [0.05, 0.8, k]'; % high C
-            %y0 = [Mlow, Chigh, k, 0]'; % high C
+            
             y0 = [Mlow*0.95, Chigh, H0, Mlow*0.05]'; % high C
         else
-            %y0 = [0.8, 0.05, k]'; % high M
-            %y0 = [Mhigh, Clow, k, 0]'; % high M
+            
             y0 = [Mhigh*0.95, Clow, H0, Mhigh*0.05]'; % high M
         end
         end
@@ -89,17 +82,13 @@ sol = pdepe(0,@pdefcn,@pdeic,@pdebc,x,t);
         % sine wave
         if icchoice ==5
 
-            %xpos = xi;
-            %C0i = ampC0*sin(period0*xpos) + Chigh;
-            %M0i = ampM0*sin(period0*xpos-pi) + Mhigh;
+            
 
             C0i = ampC0*sin(period0*xi) + Chigh;
             M0i = ampM0*sin(period0*xi-pi) + Mhigh;
             y0 = [M0i*0.95, C0i, H0, M0i*0.05]'; % need to transpose!!
 
             
-            %y0 = [M0i, C0i, H0, M0v]'; % REMEMBER NEED TRANSPOSE (') to make this a column, could also separate with semicolons instead of commas
-
         end
         
     end

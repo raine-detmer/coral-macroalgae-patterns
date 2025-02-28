@@ -40,7 +40,7 @@ dC = 0.02;
 phiM = 0.01; 
 
 % herbivore parameters
-rH = 0.2;%0.1; % herbivore growth rate
+rH = 0.2; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
 f = 0; % herbivore fishing pressure
 phiH = 0.05; % external recruitment
@@ -59,9 +59,9 @@ Mvstars = NaN(length(fset), 4);
 % turn off warning
 warning('off','symbolic:numeric:NumericalInstability')
 
-for i = 1:length(fset)%for each element of gset
-    % get the fishing pressure
-    fi = fset(i);
+for i = 1:length(fset)%for each element of fset
+    
+    fi = fset(i); % set the fishing pressure
 
     % solve the equations
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
@@ -95,18 +95,18 @@ Mlows = vertcat(Mstars(1:bend, 3), Mstars(bend+1:end, 1));
 %% Briggs: PDE bifurcation diagram
 
 % PDE parameters
-diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates 
 taxisM = 0; 
-taxisC = -0.75;%0; % taxis rate toward coral
+taxisC = -0.75; % taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundariess for constant habitat. 1 = Dirichlet boundaries for loss at the edges
 
-% space
+% space parameters
 len = 400;
 xset = linspace(-len/2,len/2,800);
 
-% time
+% time parameters
 t_end = 3*50000;
 tset = linspace(0,t_end,2*2500); 
 
@@ -115,7 +115,7 @@ tset = linspace(0,t_end,2*2500);
 icchoice = 4; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
 
 C0high = 0.85;
-C0low = 0.05;%0.05;
+C0low = 0.05;
 M0high = 0.85;
 M0low = 0.05;
 
@@ -142,18 +142,19 @@ b2 = xset(end)-dthresh; % upper boundary for peak consideration
 b1i = find(abs(xset-b1)==min(abs(xset-b1)));
 b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
-%  values of fishing pressure
+%  values of fishing pressure to iterate over
 fset21 = linspace(0.13, 0.19, 20); 
 
 % initial conditions: patch widths
 wset = round([length(xset)/2, length(xset)/16, length(xset)/64]);
 
 % holding arrays
+% full simulations
 Cruns = NaN(length(tset), length(b1i:b2i),length(fset21), length(wset));
 Mruns = NaN(length(tset), length(b1i:b2i),length(fset21), length(wset));
 Hruns = NaN(length(tset), length(b1i:b2i),length(fset21), length(wset));
 
-% also record avg abundance for each parameter combination
+% average abundance for each parameter combination
 Cmeans = NaN(length(fset21), length(wset));
 Mmeans = NaN(length(fset21), length(wset));
 Hmeans = NaN(length(fset21), length(wset));
@@ -170,10 +171,10 @@ for j = 1:length(wset) % for each initial condition
     C0widths = wset(j);
     initC = stepfun(C0widths, xset); 
 
-    for i = 1:length(fset21) % for each fishing pressure
+    for i = 1:length(fset21) % for each fishing pressure in fset21
     %for i = 1:5
 
-    ftest = fset21(i);
+    ftest = fset21(i); % set the fishing pressure
 
      % run PDE
      [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
@@ -188,6 +189,7 @@ for j = 1:length(wset) % for each initial condition
     Mmeans(i,j) = mean(solij(end, b1i:b2i, 1)+ solij(end,b1i:b2i,4));
     Hmeans(i,j) = mean(solij(end, b1i:b2i, 3));
 
+    % record max and min C and M cover
     Cmxs(i,j) = max(solij(end, b1i:b2i, 2));
     Cmns(i,j) = min(solij(end, b1i:b2i, 2));
     Mmxs(i,j) = max(solij(end, b1i:b2i, 1)+ solij(end,b1i:b2i,4));
@@ -266,7 +268,7 @@ rng = find(MmxsP-MmnsP> 0.01);
     btwx = [fset21(rng), fliplr(fset21(rng))];
     btwy = [MmnsP(rng)', fliplr(MmxsP(rng)')];
     fill(btwx, btwy, Mcol, 'FaceAlpha',0.08, 'EdgeColor', Mcol, 'EdgeAlpha', 0.6);
-% NEWER UPDATE: add the maxes and mins
+% add the maxes and mins from the current initial conditions
 MmxsP = Mmxs(:,pp);
 MmnsP = Mmns(:,pp);
 rng = find(MmxsP-MmnsP> 0.01);
@@ -283,11 +285,11 @@ plot(fset21, MmeansP, 'o','MarkerSize',8,'Color', Mcol, 'LineWidth', 1.2)
 MmeansP = Mmeans(:,pp);
 plot(fset21, MmeansP, '.','MarkerSize',30,'Color', Mcol)
 % add circle around f value for which spatial distribution is shown
-plotj = fpts(1); % f value = 0.1005
+plotj = fpts(1); 
 plot(fset21(plotj), MmeansP(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), MmeansP(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
 text(fset21(plotj)-0.008, MmeansP(plotj) + 0.04, 'f = 0.146', 'Color', fcol,'FontSize', 14)
-plotj = fpts(2); % f value =  0.1089
+plotj = fpts(2); 
 plot(fset21(plotj), MmeansP(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), MmeansP(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
 text(fset21(plotj)-0.01, MmeansP(plotj) + 0.04, 'f = 0.158', 'Color', fcol,'FontSize', 14)
@@ -402,11 +404,11 @@ plot(fset21, MmeansP, 'o','MarkerSize',8,'Color', Mcol, 'LineWidth', 1.2)
 MmeansP = Mmeans(:,pp);
 plot(fset21, MmeansP, '.','MarkerSize',30,'Color', Mcol)
 % add circle around f value for which spatial distribution is shown
-plotj = fpts(1); % f value = 0.1005
+plotj = fpts(1); 
 plot(fset21(plotj), MmeansP(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), MmeansP(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
 text(fset21(plotj)-0.0095, MmeansP(plotj) + 0.038, 'f = 0.146', 'Color', fcol,'FontSize', 14)
-plotj = fpts(2); % f value =  0.1089
+plotj = fpts(2); 
 plot(fset21(plotj), MmeansP(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), MmeansP(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
 text(fset21(plotj)-0.01, MmeansP(plotj) + 0.04, 'f = 0.158', 'Color', fcol,'FontSize', 14)
@@ -508,11 +510,11 @@ plot(fset21, MmeansP, 'o','MarkerSize',8,'Color', Mcol, 'LineWidth', 1.2)
 MmeansP = Mmeans(:,pp);
 plot(fset21, MmeansP, '.','MarkerSize',30,'Color', Mcol)
 % add circle around f value for which spatial distribution is shown
-plotj = fpts(1); % f value = 0.1005
+plotj = fpts(1); 
 plot(fset21(plotj), MmeansP(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), MmeansP(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
 text(fset21(plotj)-0.01, MmeansP(plotj) + 0.04, 'f = 0.146', 'Color', fcol,'FontSize', 14)
-plotj = fpts(2); % f value =  0.1089
+plotj = fpts(2); 
 plot(fset21(plotj), MmeansP(plotj), '.','MarkerSize',30,'Color', Mcol)
 plot(fset21(plotj), MmeansP(plotj), 'o','MarkerSize',8,'Color', fcol, 'LineWidth',2.5)
 text(fset21(plotj)-0.01, MmeansP(plotj) + 0.04, 'f = 0.158', 'Color', fcol,'FontSize', 14)

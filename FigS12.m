@@ -1,16 +1,19 @@
 % README: code for making Fig. S12
 
 
+% can load output from these simulations instead of running everything
+% below:
+load('code output/FigS12.mat','CupsB', 'CmidsB', 'ClowsB', 'MupsB', ...
+    'MmidsB', 'MlowsB', 'fsetB', 'bstartB', 'bendB', 'fset21B', 'CmeansB', ...
+    'MmeansB')
+
 %% setup
 % plotting colors
 Mcol = [0.4667 0.6745 0.1882];
 Ccol = [0.3020 0.7451 0.9333];
 Hcol = [0.9294 0.6941 0.1255]; % herbivores
 
-% external recruitment sets
-% extHs = [0, 0.001, 0.005, 0.01];
-
-%extHs = [0, 0.001, 0.01, 0.1];
+% set of external herbivore recruitment
 extHs = [0, 0.05, 0.1, 0.15];
 
 %% Briggs model ODE
@@ -39,9 +42,6 @@ f = 0; % herbivore fishing pressure
 phiH = 0.05; % external recruitment rate
 
 % set of fishing values
-%fset = linspace(0.05, 0.145, 100);
-%fset = linspace(0.08, 0.175, 100);
-
 fset1 = horzcat(linspace(0.05, 0.145, 100), linspace(0.145, 0.35, 20));
 
 fset2 = horzcat(linspace(0.05, 0.16, 20), linspace(0.16, 0.35, 100));
@@ -79,10 +79,8 @@ Cstars = NaN(length(fset), 8);%not sure how many pos, real eq...maybe run a sing
 % value in region of bistability to check how many solutions there were?
 Mstars = NaN(length(fset), 8);
 
-%Mistars = NaN(length(fset), 4);
-%Mvstars = NaN(length(fset), 4);
 
-for i = 1:length(fset)%for each element of gset
+for i = 1:length(fset)%for each element of fset
     % get the eqns
     fi = fset(i);
 
@@ -109,12 +107,12 @@ bend2 = find(isnan(Cstars(:, 2))==0, 1, 'last' ); % second equibrium switch
 % use vertcat to concatenate vertical vectors
 % look at the Cstars to figure out how to piece these together
 % for f on x axis:
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 2), Cstars(bstart(j):end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 2), Cstars(bstart(j):end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids(:,j) = Cstars(:, 3);
 %Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 2));
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):bend2, 2), Cstars(bend2+1:end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 3), Mstars(bstart(j):bend(j), 2), Mstars(bend(j)+1:end, 3));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 3), Mstars(bend(j)+1:end, 1));
 % note ups and lows are from the coral's perspective still
@@ -126,11 +124,11 @@ bstart(j) = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability reg
 % use vertcat to concatenate vertical vectors
 % look at the Cstars to figure out how to piece these together
 % for f on x axis:
-Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):bend(j), 3), Cstars(bend(j)+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
-Cmids(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):bend(j), 2), Cstars(bend(j)+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Cups(:,j) = vertcat(Cstars(1:bstart(j)-1, 1), Cstars(bstart(j):bend(j), 3), Cstars(bend(j)+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
+Cmids(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):bend(j), 2), Cstars(bend(j)+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Clows(:,j) = vertcat(Cstars(1:bstart(j)-1, 4), Cstars(bstart(j):end, 1));
 
-Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
+Mups(:,j) = vertcat(Mstars(1:bend(j), 1), Mstars(bend(j)+1:end, 3)); % need to make sure the length stays the same so concatenate with NaNs 
 Mmids(:,j) = vertcat(Mstars(1:bstart(j)-1, 3), Mstars(bstart(j):bend(j), 2), Mstars(bend(j)+1:end, 3));
 Mlows(:,j) = vertcat(Mstars(1:bend(j), 3), Mstars(bend(j)+1:end, 1));
 
@@ -165,9 +163,9 @@ hold off
 %% Briggs PDE
 
 % PDE parameters
-diffs = [0.05,0.05,0.25, 0]; % diffusion rates, changed from diff to diffs bc otherwise diff() function doesn't work 
+diffs = [0.05,0.05,0.25, 0]; % diffusion rates
 taxisM = 0; 
-taxisC = -0.75;%0; % taxis rate toward coral
+taxisC = -0.75;% taxis rate toward coral
 taxisT = 0;
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
@@ -214,10 +212,6 @@ b1i = find(abs(xset-b1)==min(abs(xset-b1)));
 b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
 %  values of fishing pressure
-%fset1 = horzcat(linspace(0.05, 0.145, 100), linspace(0.146, 0.26, 20));
-%fset2 = horzcat(linspace(0.05, 0.174, 20), linspace(0.175, 0.26, 100));
-
-
 fset21 = linspace(0.07, 0.2, 20);
 fsetL = linspace(0.07, 0.2, 20);
 fsetU = linspace(0.15, 0.3, 20);
@@ -284,7 +278,7 @@ beep
 % plot(xset, Mruns(end,:,4, 8), 'LineWidth',2, 'Color', [0.4667 0.6745 0.1882])
 % hold off
 
-%% save all the Briggs results
+%% save all the model outputs
 CupsB = Cups;
 CmidsB = Cmids;
 ClowsB = Clows;
@@ -526,11 +520,6 @@ legend('Coral cover', 'Macroalgal cover', 'Herbivore biomass', 'location', 'nort
 save('code output/FigS12.mat','CupsB', 'CmidsB', 'ClowsB', 'MupsB', ...
     'MmidsB', 'MlowsB', 'fsetB', 'bstartB', 'bendB', 'fset21B', 'CmeansB', ...
     'MmeansB')
-
-%% load output
-% load('code output/FigS12.mat','CupsB', 'CmidsB', 'ClowsB', 'MupsB', ...
-%     'MmidsB', 'MlowsB', 'fsetB', 'bstartB', 'bendB', 'fset21B', 'CmeansB', ...
-%     'MmeansB')
 
 
 

@@ -1,12 +1,13 @@
 % README: code for making Figure 3
 
-
+% takes several minutes to run, or can load the stored output:
+load('code output/Fig3.mat','Cmeans1','pksumm1', 'Cmeans2','pksumm2')
 
 %% model set up
 
 % parameters
 
-% define the symbols
+% define the symbols (state variables)
 syms Mi C H Mv
 
 % define parameters
@@ -23,22 +24,21 @@ dC = 0.02;
 phiM = 0.01; 
 
 % herbivore parameters
-rH = 0.2;%0.1; % herbivore growth rate
+rH = 0.2; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
 f = 0; % herbivore fishing pressure
 phiH = 0.05; % external recruitment
 
 
-% first get the tipping point more precisely
-% set of fishing values
-fset2 = linspace(0.165, 0.169, 50);
+% first get the lower tipping point 
+fset2 = linspace(0.165, 0.169, 50); % set of fishing pressures to iterate over
 
 % holding vector of eq values
 Cstars2 = NaN(length(fset2), 4);
 
-for i = 1:length(fset2)%for each element of gset
-    % get the eqns
-    fi = fset2(i);
+for i = 1:length(fset2)%for each element of fset2
+    
+    fi = fset2(i); % set the fishing pressure equal to the ith element of fset2
 
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
@@ -60,9 +60,9 @@ bstart2 = find(isnan(Cstars2(:, 3))==0, 1, 'first' );% start of bistability regi
 
 % PDE parameters
 diffs = [0.05,0.05,0.25, 0]; % diffusion rates of MI, C, H, and Mv
-taxisM = 0; 
+taxisM = 0; % taxis rate toward macroalgae
 taxisC = -0.75; % taxis rate toward coral
-taxisT = 0;
+taxisT = 0; % taxis rate toward turf/free space
 
 diric = 0; % 0 = Neumann boundaries for constant habitat. 1 = Dirichlet boundaries for loss at the edges
 
@@ -82,14 +82,14 @@ C0low = 0.05; % coral cover in initial macroalgal patches
 M0high = 0.85; % total macroalgal cover in initial macroalgal patches
 M0low = 0.05; % total macroalgal cover in initial coral patches
 
-% for icchoice = 3
+% for icchoice = 3 (random)
 rnsize = 1; % magnitude of random variation (0-1)
 
-% for icchoice = 4
+% for icchoice = 4 (step)
 C0widths = round(length(xset)/16);  % step widths
 initC = stepfun(C0widths, xset); % elements of xset where coral is initially high
 
-% for icchoice = 5
+% for icchoice = 5 (sinusoidal)
  ampC0 = (C0high-C0low)/2;
  ampM0 = (M0high-M0low)/2;
  period0 = 0.4;
@@ -100,7 +100,7 @@ dthresh = 0.25*len; % threshold distance from edge before a peak gets considered
 b1 = xset(1) + dthresh; % lower boundary for peak consideration
 b2 = xset(end)-dthresh; % upper boundary for peak consideration
 
-% get the indeces of these boundaries (will use these for intervals to take
+% get the indeces of xset corresponding to these boundaries (will use these for intervals to take
 % spatial averages)
 b1i = find(abs(xset-b1)==min(abs(xset-b1)));
 b2i = find(abs(xset-b2)==min(abs(xset-b2)));
@@ -109,67 +109,66 @@ b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 %% vary taxis just past tipping point and record peak metrics
 
 % parameter set up
-%ftest = fset2(bstart2)-0.005*fset2(bstart2);
-ftest = fset2(bstart2)-0.01*fset2(bstart2);
+ftest = fset2(bstart2)-0.01*fset2(bstart2); % fishing pressure to use (just below lower tipping point)
 
-% txset2 = linspace(0, 1, 20);
-txset2 = linspace(0, 1.25, 20);
+txset2 = linspace(0, 1.25, 20); % set of taxis values 
 
-parset = txset2; % parameter set 
+parset = txset2; % parameter set to iterate over 
 
 % initial conditions
 parset2 = [round(length(xset)/2), round(length(xset)/64)];
 
 % holding arrays
+% full results
 Cruns = NaN(1, length(xset),1, length(parset), length(parset2));
 Mruns = NaN(1, length(xset),1, length(parset), length(parset2));
 Hruns = NaN(1, length(xset),1, length(parset), length(parset2));
 
-% also record avg abundance at final timepoint for each parameter combination
+% average abundance at final timepoint for each parameter combination
 Cmeans = NaN(1, length(parset), length(parset2));
 Mmeans = NaN(1, length(parset), length(parset2));
 Hmeans = NaN(1, length(parset), length(parset2));
 
-summ10 = 1; % 1 = record peak summaries, 0 = record all peaks
+summ10 = 1; % 1 = record metrics from 3 peaks closest to center of landscape, 0 = record all peaks
 pksumm = NaN(6,3,1,length(parset), length(parset2)); % record characteristics of middle two peaks
 % 1 = wavelength (dist btw peaks), 2 = widths, 3 = prominance, 4 = absolute
 % height, 5 = number of peaks (where C>M), 6 = number of peaks even if C<M
 
 
 tic
-for z = 1:length(parset2)
+for z = 1:length(parset2) % for each element in parset2 (initial conditions)
 
+   % set the initial conditions)
  C0widths = parset2(z);  % step widths
 initC = stepfun(C0widths, xset); 
 
 
-for k = 1:length(parset) % for each step width
+for k = 1:length(parset) % for each element of parset (herbivore taxis values)
    
-    taxisC = -1*parset(k);
+    taxisC = -1*parset(k); % set herbivore taxis towards coral
 
-   for i = 1:1
+   for i = 1:1 % inner for loop for iterating over second parameter (not used here)
 
      % run PDE
     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
-    
-    % record output
+    % store output
     Cruns(1, :,i, k, z) = solij(end,:,2);
     Mruns(1, :, i, k, z) = solij(end,:,1)+ solij(end,:,4);
     Hruns(1, :, i, k, z) = solij(end,:,3);
 
-    % record spatial averages at final time point
-    % update to only record means in middle region
+    % record spatial averages at final time point (averaged over locations
+    % between xset(b1i) and xset(b2i))
     Cmeans(i, k, z) = mean(solij(end, b1i:b2i, 2));
     Mmeans(i, k, z) = mean(solij(end, b1i:b2i, 1)+ solij(end,b1i:b2i,4));
     Hmeans(i, k, z) = mean(solij(end, b1i:b2i, 3));
 
-    % record peak metrics
+    % calculate peak metrics
      Cvalsijk = solij(end, :, 2);
       Mvalsijk = solij(end, :, 1)+ solij(end,:,4);
       [npks0, npks, pklambdas,pkwidths,pkproms,pkheights] = peakfun(Cvalsijk,Mvalsijk,summ10,xset, pkthresh, b1, b2);
 
-            % record these
+            % store these
             % note: record peak density not number of peaks
             pksumm(6,1,i,k, z) = npks0/(b2-b1);
             pksumm(5,1,i, k, z) = npks/(b2-b1);
@@ -185,7 +184,7 @@ end
 
 end
 
-toc % most current: 220 seconds
+toc % 220 seconds
 
 %% save results
 Cruns1 = Cruns;
@@ -199,17 +198,15 @@ Hmeans1 = Hmeans;
 pksumm1 = pksumm;
 
 
-%% vary diffusion just past tipping point (for recording peak metrics)
+%% vary diffusion just past tipping point and record peak metrics
 
-taxisC = -0.75;
+taxisC = -0.75; % reset taxis
 
-%ftest = fset2(bstart2)-0.005*fset2(bstart2);
-ftest = fset2(bstart2)-0.01*fset2(bstart2);
+ftest = fset2(bstart2)-0.01*fset2(bstart2); % fishing pressure to use
 
-%diffHset2 = linspace(0.1, 1.4, 25);
-diffHset2 = linspace(0.1, 1.25, 25);
+diffHset2 = linspace(0.1, 1.25, 25); % set of herbivore diffusion values
 
-parset = diffHset2; % parameter set 
+parset = diffHset2; % parameter set to iterate over
 
 
 % holding arrays
@@ -231,27 +228,26 @@ pksumm = NaN(6,3,1,length(parset), length(parset2)); % record characteristics of
 tic
 for z = 1:length(parset2)
 
+   % set initial conditions
  C0widths = parset2(z);  % step widths
 initC = stepfun(C0widths, xset); 
 
 
-for k = 1:length(parset) % for each step width
+for k = 1:length(parset) % for each element of parset (herbivore diffusion rates)
    
-   diffs = [0.05,0.05,parset(k), 0];
+   diffs = [0.05,0.05,parset(k), 0]; % set herbivore diffusion rate
 
    for i = 1:1
 
       % run PDE
     [solij] = BriggsHrPDEextH(phiC, gTC, gamma, gTI, dC, phiM, rM, gTV, dv, omega,di, rH, dH, ftest,diffs,taxisM,taxisC, taxisT, diric,xset, tset,initC,C0low, C0high, M0low, M0high,rnsize, ampC0, ampM0, period0, icchoice, phiH); 
 
-    % record output
+    % store output
     Cruns(1, :,i, k, z) = solij(end,:,2);
     Mruns(1, :, i, k, z) = solij(end,:,1)+ solij(end,:,4);
     Hruns(1, :, i, k, z) = solij(end,:,3);
 
-
     % record spatial averages at final time point
-    % update to only record means in middle region
     Cmeans(i, k, z) = mean(solij(end, b1i:b2i, 2));
     Mmeans(i, k, z) = mean(solij(end, b1i:b2i, 1)+ solij(end,b1i:b2i,4));
     Hmeans(i, k, z) = mean(solij(end, b1i:b2i, 3));
@@ -262,7 +258,7 @@ for k = 1:length(parset) % for each step width
       [npks0, npks, pklambdas,pkwidths,pkproms,pkheights] = peakfun(Cvalsijk,Mvalsijk,summ10,xset, pkthresh, b1, b2);
 
             % record these
-            % update: record peak density not number of peaks
+            % note: record peak density not number of peaks
             pksumm(6,1,i,k, z) = npks0/(b2-b1);
             pksumm(5,1,i, k, z) = npks/(b2-b1);
             pksumm(1,1:length(pklambdas),i,k, z) = pklambdas;
@@ -281,7 +277,7 @@ end
 toc % took 184 seconds
 
 beep on 
-beep
+beep % beep when simulation is finished
 
 %% save results
 Cruns2 = Cruns;
@@ -298,14 +294,14 @@ pksumm2 = pksumm;
 %% calculate reference C cover
 % for adding a horizontal line at nonspatial equilibrium
 
-syms Mi C H Mv
+% state variables
+syms Mi C H Mv 
 
 % turn off warning
 warning('off','symbolic:numeric:NumericalInstability')
 
     % get the eqns
-    %fi = fset2(bstart2)-0.005*fset2(bstart2);
-    fi = fset2(bstart2)-0.01*fset2(bstart2);
+    fi = fset2(bstart2)-0.01*fset2(bstart2); % fishing pressure
 
     eq1i = omega*Mv+gTI*(1-Mi-Mv-C)*Mi+gamma*gTI*Mi*C-di*H*Mi == 0;%Mi
     eq2i = phiC*(1-Mi-Mv-C)+gTC*(1-Mi-Mv-C)*C -gamma*gTI*Mi*C-dC*C ==0; %C
@@ -313,20 +309,19 @@ warning('off','symbolic:numeric:NumericalInstability')
     eq4i = phiM*(1-Mi-Mv-C)+rM*(1-Mi-Mv-C)*Mi+gTV*(1-Mi-Mv-C)*Mv-dv*H*Mv-omega*Mv ==0; % Mv
     % solve the eq values
     soli = vpasolve([eq1i, eq2i, eq3i, eq4i],[Mi,C, H, Mv], [0 Inf; 0 Inf; 0 Inf; 0 Inf]); % just pos and real
-    % store the values of the eq C cover
-   % Cstars(1:length(soli.C)) = sort(soli.C); % sort the equilibria from lowest to highest (or NA)
-   % Mstars(1:length(soli.Mi)) = sort(soli.Mi + soli.Mv);
-
+   
+   % store the equilibrium coral cover
    Cref = soli.C;
-   %Cref = Cref(2);
+   
 %% plot patch characteristics together
 % plot the taxis and diffusion columns on the same plot
 
-% txset2 = linspace(0, 1, 20);
-% diffHset2 = linspace(0.1, 1.4, 25);
+txset2 = linspace(0, 1.25, 20); % set of taxis values 
+
+diffHset2 = linspace(0.1, 1.25, 25); % set of herbivore diffusion values
 
 %uisetcolor
-
+% plot colors for each set of initial conditions
 C1 = [0.0118    0.6588    0.6588];
 C2 = [0.1412    0.0824    0.9294];
 
@@ -335,8 +330,6 @@ C2 = [0.1412    0.0824    0.9294];
 pksummp = pksumm1;
 Cmeansp = Cmeans1;
 
-% clear gcf
-% clear gca
 
 % panel for means, number of peaks, peak wavelengths, and peak heights
 figure(5)
@@ -451,6 +444,3 @@ hold off
 
 save('code output/Fig3.mat','Cmeans1','pksumm1', 'Cmeans2','pksumm2')
 
-%% load results
-
-% load('code output/Fig3.mat','Cmeans1','pksumm1', 'Cmeans2','pksumm2')

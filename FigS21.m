@@ -31,7 +31,6 @@ dC = 0.02;
 phiM = 0.01; 
 
 % herbivore parameters
-%rH = 0.2; % herbivore growth rate
 dH = 0.1; % dens dep herbivore mortality
 f = 0; % herbivore fishing pressure
 
@@ -39,15 +38,12 @@ rH = 0; % herbivore growth rate
 phiH = 0.2; % herbivore external recruitment rate
 
 % set of fishing pressure values
-%fset = linspace(0.05, 0.15, 100);
 fset = linspace(0.08, 0.185, 100);
 
 % holding vectors for equilibrium values
 Cstars = NaN(length(fset), 4); % coral
 Mstars = NaN(length(fset), 4); % macroalgae (vuln + invuln)
 
-%Mistars = NaN(length(fset), 4);
-%Mvstars = NaN(length(fset), 4);
 
 % turn off warning
 warning('off','symbolic:numeric:NumericalInstability')
@@ -77,8 +73,7 @@ bstart = find(isnan(Cstars(:, 3))==0, 1, 'first' );% start of bistability region
 
 % use vertcat to concatenate vertical vectors
 % for f on x axis:
-Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:bend, 3), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs from Cstars(3,)
-%Cmids = Cstars(:, 2); % unstable eq
+Cups = vertcat(Cstars(1:bstart-1, 1), Cstars(bstart:bend, 3), Cstars(bend+1:end, 4)); % need to make sure the length stays the same so concatenate with NaNs 
 Cmids = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 2)); % unstable eq
 Clows = vertcat(Cstars(1:bstart-1, 4), Cstars(bstart:end, 1));
 
@@ -90,19 +85,19 @@ Mlows = vertcat(Mstars(1:bend, 3), Mstars(bend+1:end, 1));
 
 %% check results
 
-figure(1)
-plot(fset, Mlows,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5) %Cups(:, ploti)
-hold on
-plot(fset, Mups,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5)
-plot(fset, Mmids,'Color', Mcol, "LineStyle","--", 'LineWidth', 2.5) % unstable
-hold off
-
-figure(2)
-plot(fset, Clows,'Color', Ccol, "LineStyle","-", 'LineWidth', 2.5) %Cups(:, ploti)
-hold on
-plot(fset, Cups,'Color', Ccol, "LineStyle","-", 'LineWidth', 2.5)
-plot(fset, Cmids,'Color', Ccol, "LineStyle","--", 'LineWidth', 2.5) % unstable
-hold off
+% figure(1)
+% plot(fset, Mlows,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5) 
+% hold on
+% plot(fset, Mups,'Color', Mcol, "LineStyle","-", 'LineWidth', 2.5)
+% plot(fset, Mmids,'Color', Mcol, "LineStyle","--", 'LineWidth', 2.5) % unstable
+% hold off
+% 
+% figure(2)
+% plot(fset, Clows,'Color', Ccol, "LineStyle","-", 'LineWidth', 2.5) %Cups(:, ploti)
+% hold on
+% plot(fset, Cups,'Color', Ccol, "LineStyle","-", 'LineWidth', 2.5)
+% plot(fset, Cmids,'Color', Ccol, "LineStyle","--", 'LineWidth', 2.5) % unstable
+% hold off
 
 
 
@@ -128,8 +123,6 @@ tset = linspace(0,t_end,2*2500);
 
 % initial conditions
 icchoice = 4; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
-%icchoice = 3; % 1 = low coral, 2 = high coral, 3 = random, 4 = step function, 5 = sin function
-
 
 C0high = 0.85; % coral cover in initial coral patches
 C0low = 0.05; % coral cover in initial macroalgal patches
@@ -162,11 +155,6 @@ b2i = find(abs(xset-b2)==min(abs(xset-b2)));
 
 
 %  values of fishing pressure
-%fset21 = linspace(0.09, 0.13, 20); 
-
-%fset21 = linspace(0.06, 0.13, 20); 
-
-%fset21 = linspace(0.102, 0.15, 20); 
 
 fset21 = linspace(0.09, 0.15, 20); 
 
@@ -180,7 +168,7 @@ Cmeans = NaN(length(fset21));
 Mmeans = NaN(length(fset21));
 Hmeans = NaN(length(fset21));
 
-summ10 = 1; % 1 = record peak summaries, 0 = record all peaks
+summ10 = 1; % 1 = record metrics from 3 peaks closest to center of landscape, 0 = record all peaks
 
     tic
    for i = 1:length(fset21) % for each fishing pressure
@@ -213,7 +201,6 @@ summ10 = 1; % 1 = record peak summaries, 0 = record all peaks
 
 %% plot bifurcation diagram for macroalgae (Fig. 1a) and coral (Fig. 1b)
 
-%fpts = [6, 10, 14, 18]; % elements of fset21 to highlight in the figure
 fpts = [3, 9, 15, 19]; % elements of fset21 to highlight in the figure
 
 
